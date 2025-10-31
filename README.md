@@ -33,17 +33,18 @@
 
 ```bash
 MusicCourseApp/
-├── Backend/
+├── Backend/          ← API
 │   ├── Controllers/
-│   ├── Models/
-│   ├── Data/
+│   ├── Models/       ← Entity + DTO (campur)
+│   ├── Data/         ← DbContext
 │   ├── Services/
 │   └── Migrations/
-├── Frontend/
-│   ├── ClientApp/
-│   └── AdminApp/
-└── Shared/
-    └── Models/
+├── AdminApp/         ← Blazor (Admin Panel)
+│   ├── Components/
+│   └── AdminApp.csproj
+└── Frontend/        ← Blazor (Website Publik)
+    ├── Components/
+    └── ClientApp.csproj
 
 ```
 
