@@ -1,0 +1,166 @@
+@page "/kelasku"
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@using System.Globalization
+@using Frontend.Services
+@* @inject HttpClient Http *@
+@inject NavigationManager Navigation
+@inject ClientApiService ApiService
+@inject ISnackbar Snackbar
+
+<PageTitle>Kelasku</PageTitle>
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudCard Class="pa-6 ml-18 border-none" Outlined="true">
+        @if (MyCourses == null)
+        {
+            <MudText Typo="Typo.body1" Class="pa-5">Memuat data...</MudText>
+        }
+        else if (!MyCourses.Any())
+        {
+            <MudText Typo="Typo.body1" Class="pa-5">Belum ada course yang dibayar.</MudText>
+        }
+        else
+        {
+            @foreach (var item in MyCourses)
+            {
+                <MudContainer Class="pa-5 ml-n7">
+                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                        <!-- Kiri -->
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudImage Src="@($"http://localhost:5058/img/list_kelas/{item.ImageCourse}")" Class="rounded-lg"
+                                Width="200" Height="133" />
+
+                            <MudStack Style="margin-left:16px;" AlignItems="AlignItems.Start" Spacing="1">
+                                <MudText Typo="Typo.caption" style="color: #828282;">
+                                    @item.Kategori
+                                </MudText>
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:600; font-size: 24px">
+                                    @item.NamaCourse
+                                </MudText>
+                                <MudText Color="Color.Secondary" Style="font-weight:400;">
+                                    Jadwal: @item.Jadwal.ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID"))
+                                </MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudStack>
+                </MudContainer>
+
+                <MudDivider Class="mt-6" Style="background-color:black; height:2px; width: 100%" />
+            }
+        }
+    </MudCard>
+</MudHidden>
+
+<!-- MOBILE SECTION -->
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudCard Class="pa-6 border-none" Outlined="true">
+
+        @if (MyCourses == null)
+        {
+            <MudText Typo="Typo.body1" Class="pa-5">Memuat data...</MudText>
+        }
+        else if (!MyCourses.Any())
+        {
+            <MudText Typo="Typo.body1" Class="pa-5">Belum ada course yang dibayar.</MudText>
+        }
+        else
+        {
+            @foreach (var item in MyCourses)
+            {
+                <MudContainer Class="pa-5">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudImage Src="@($"http://localhost:5058/img/list_kelas/{item.ImageCourse}")" Class="rounded-lg"
+                            Width="150" Height="100" />
+
+                        <MudStack Style="margin-left:10px;" AlignItems="AlignItems.Start" Spacing="1">
+                            <MudText Typo="Typo.caption" style="color: #828282;">
+                                @item.Kategori
+                            </MudText>
+                            <MudText Typo="Typo.subtitle2" Style="font-weight:bold;">
+                                @item.NamaCourse
+                            </MudText>
+                            <MudText Color="Color.Secondary" Typo="Typo.body2">
+                                Jadwal: @item.Jadwal.ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID"))
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudContainer>
+
+                <MudDivider Class="mt-4" Style="background-color:black; height:1.5px; width: 100%" />
+            }
+        }
+    </MudCard>
+</MudHidden>
+
+<style>
+    .border-none {
+        border: none !important;
+    }
+</style>
+
+@code {
+    private List<MyCourseDto>? MyCourses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchMyCourseAsync();
+    }
+
+
+
+    private async Task FetchMyCourseAsync()
+    {
+        try
+        {
+            var userId = await ApiService.GetCurrentUserId();
+            if (userId == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+            
+            await ApiService.InitializeAsync();
+            MyCourses = await ApiService.GetAsync<List<MyCourseDto>>($"api/Checkout/{userId}")
+            ?? new List<MyCourseDto>();
+        }
+        catch (Exception ex)
+        {
+            MyCourses = new List<MyCourseDto>();
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+
+    @* protected override async Task OnInitializedAsync()
+    {
+        int currentUserId = 1006; // simulasi user login
+        try
+        {
+            await ApiService.InitializeAsync();
+            var response = await Http.GetAsync($"http://localhost:5058/api/Checkout/{currentUserId}");
+            if (response.IsSuccessStatusCode)
+            {
+                MyCourses = await response.Content.ReadFromJsonAsync<List<MyCourseDto>>();
+            }
+            else
+            {
+                Snackbar.Add("User belum ada kelas", Severity.Error);
+                MyCourses = new List<MyCourseDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+            MyCourses = new List<MyCourseDto>();
+        } *@
+    private class MyCourseDto
+    {
+        public string NamaCourse { get; set; } = string.Empty;
+        public string Kategori { get; set; } = string.Empty;
+        public DateTime Jadwal { get; set; }
+        public decimal Harga { get; set; }
+        public string ImageCourse { get; set; } = string.Empty;
+    }
+}

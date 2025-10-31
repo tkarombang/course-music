@@ -1,0 +1,140 @@
+@page "/purchaseberhasil"
+@rendermode InteractiveServer
+@layout Layout.PurchaseLayout
+@inject NavigationManager Navigation
+
+<MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center">
+    <MudItem xs="12" class="d-flex justify-center">
+        <MudImage
+            class="mt-12"
+            Src="img/Berhasil.svg" 
+            Alt="Music"
+            Width="250"
+            Height="250"
+            Elevation="0" />
+    </MudItem>
+
+    <MudContainer Class="card-bellow">
+    
+        <!-- Versi untuk layar Medium ke atas -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudText 
+                Align="Align.Center"
+                Typo="Typo.h5" 
+                class="ml-15 mb-2"
+                Color="Color.Secondary" 
+                style="font-weight: 500;">Pembelian Berhasil
+            </MudText>
+
+            <MudText 
+                Typo="Typo.subtitle1" 
+                class="text-bellow"
+                Color="Color.Tertiary">Yey! Kamu telah berhasil membeli kursus di Apel Music
+            </MudText>
+            
+            <MudStack Row Justify="Justify.Center" Spacing="2">
+                <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       Class="Button-small mt-5 ml-10"
+                       Style=""
+                       OnClick="GoToBeranda">
+                Ke Beranda
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                       Color="Color.Secondary"
+                       Class="Button-small mt-5 ml-10"
+                       Style=""
+                       OnClick="GoToInvoice">
+                Buka Invoice
+                </MudButton>
+            </MudStack>
+        </MudHidden>
+
+        <!-- Versi untuk layar Xs & Sm -->
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudText 
+                Typo="Typo.subtitle1" 
+                Class="ml-4 "
+                Align="Align.Center"
+                Color="Color.Secondary" 
+                style="font-weight: 400;">
+                Pembelian Berhasil
+            </MudText>
+
+            <MudText 
+                Typo="Typo.body2" 
+                Class="ml-4 pa-5"
+                Align="Align.Center"
+                Color="Color.Tertiary" 
+                >
+                Yey! Kamu telah berhasil membeli kursus di Apel Music
+            </MudText>
+            <MudGrid Justify="Justify.Center">
+                <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       Class="Button-small mt-5 ml-10"
+                       Style=""
+                       OnClick="GoToBeranda">
+                Ke Beranda
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                       Color="Color.Secondary"
+                       Class="Button-small mt-5 ml-10 mb-5"
+                       Style=""
+                       OnClick="GoToInvoice"
+                       >
+                Buka Invoice
+            </MudButton>
+            </MudGrid>
+            
+        </MudHidden>
+    </MudContainer>
+    
+</MudGrid>
+
+<style>
+    .card-bellow{
+        width: 435px; /* bisa disesuaikan */
+        height: 68px;
+        justify-content: center;
+        padding: 32px;
+        gap: 8px;
+        outline: 0vh;
+    }
+
+    .text-bellow{
+        width: 500px;
+        height: 24px;
+    }
+
+    .Button-small{
+        width: 200px;
+        height: 55px;
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+    }
+    .Button-masuk{
+        margin-top: 40px;
+        margin-left: 120px;
+        width: 176px;
+        height: 55px;
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+    }
+</style>
+
+@code
+{
+    @code {
+    private void GoToBeranda()
+    {
+        Navigation.NavigateTo("/landingpage");
+    }
+
+    private void GoToInvoice()
+    {
+        Navigation.NavigateTo("/invoice");
+    }
+}
+
+}

@@ -1,0 +1,42 @@
+﻿@using Admin.Services
+@inherits LayoutComponentBase
+
+@inject IAdminAuthService AuthService
+@inject NavigationManager Navigation
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+<NavMenu @bind-IsOpen="@_open" Dense="@_dense" Breakpoint="@_breakpoint" ClipMode="@_clipMode" />
+
+<div class="page">
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+</MudLayout>
+
+@code {
+    private bool _open = false;
+    private bool _dense = false;
+    private Breakpoint _breakpoint = Breakpoint.Lg;
+    private DrawerClipMode _clipMode = DrawerClipMode.Never;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri).PathAndQuery.ToLowerInvariant();
+            if (!isAuthenticated && !currentUri.EndsWith("/login"))
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+    }
+}

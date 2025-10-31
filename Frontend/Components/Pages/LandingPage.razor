@@ -1,0 +1,412 @@
+@page "/landingpage"
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@using System.Threading
+@using Frontend.Services
+@using Frontend.Interface
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject IAuthClientService AuthService
+@inject ClientApiService ApiService
+@inject ISnackbar Snackbar
+
+<PageTitle>Apple Music</PageTitle>
+<!-- Background wrapper -->
+<div style="position: relative; width:100%; min-height:520px; overflow:hidden;">
+  <!-- Blurred background image -->
+  <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background-image: url('/img/Copy of image3.png');
+        background-size: cover;
+        background-position: center;
+        filter: blur(1px);
+        z-index:0;
+    "></div>
+
+  <!-- gradient overlay -->
+  <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5));
+        z-index:1;
+    "></div>
+
+  <!-- content -->
+  <div style="position: relative; z-index:2; padding-top: 80px;">
+    <MudContainer Class="mud-py-10" Style="margin-top:auto;">
+      <!-- Heading -->
+      <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-8 mt-n6 text-white" Style="font-weight:500;">
+        Hi Musiker! Gabung yuk di Apel Music
+      </MudText>
+      <MudText Typo="Typo.h5" Align="Align.Center" class="text-white">
+        Banyak kelas keren yang bisa menunjang bakat bermusik kamu
+      </MudText>
+
+      <!-- Cards -->
+      <MudGrid Justify="Justify.Center" Spacing="4" Style="margin-top: 35px;">
+        <!-- Card 1 -->
+        <MudItem xs="12" sm="4">
+          <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+            <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+              <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">500+</MudText>
+              <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                Lebih dari sekedar kelas biasa yang bisa mengeluarkan bakat kalian
+              </MudText>
+            </MudCardContent>
+          </MudCard>
+        </MudItem>
+
+        <!-- Card 2 -->
+        <MudItem xs="12" sm="4">
+          <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+            <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+              <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">50+</MudText>
+              <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                Lulusan yang menjadi musisi ternama dengan skill memukau
+              </MudText>
+            </MudCardContent>
+          </MudCard>
+        </MudItem>
+
+        <!-- Card 3 -->
+        <MudItem xs="12" sm="4">
+          <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+            <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+              <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">10+</MudText>
+              <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                Coach Special kolaborasi dengan musisi terkenal
+              </MudText>
+            </MudCardContent>
+          </MudCard>
+        </MudItem>
+      </MudGrid>
+    </MudContainer>
+  </div>
+</div>
+
+<!-- Explore Kelas Favorit -->
+<MudContainer MaxWidth="MaxWidth.Large" Class="mud-text-white mud-pt-12 mud-pb-10">
+  <!-- Section Title -->
+  <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Secondary" Class="mb-15 mt-15" Style="font-weight:500;">
+    Explore kelas favorit
+  </MudText>
+
+  <!-- Grid with 6 cards -->
+  <MudGrid Spacing="3" Justify="Justify.Center">
+    <!-- Row 1 -->
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-1.png" Title="Drummer Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Drum</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;"
+          OnClick="@(() => NavigateToDetail("Drum", "Kursus Drummer Special Coach (Eno Netral)"))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>Kursus Drummer Special
+              Coach (Eno Netral)</b></MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 8.500.000</MudText>
+      </MudCardContent>
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-2.png" Title="Guitar Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Gitar</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;"
+          OnClick="@(() => NavigateToDetail("Gitar", "[Beginner] Guitar class for kids "))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>[Beginner] Guitar class for
+              kids</b></MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 1.600.000</MudText>
+      </MudCardContent>
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-3.png" Title="Violin Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Biola</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;" OnClick="@(() => NavigateToDetail("Biola", "Biola Mid-Level Course"))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>Biola Mid-Level Course</b>
+          </MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 3.000.000</MudText>
+      </MudCardContent>
+    </MudItem>
+
+    <!-- Row 2 -->
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-4.png" Title="Piano Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Drum</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;" OnClick="@(() => NavigateToDetail("Drum", "Drummer for Kids (Level Basic/1)"))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>Drummer for Kids (Level
+              Basic/1)</b></MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 2.200.000</MudText>
+      </MudCardContent>
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-5.png" Title="Bass Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Piano</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;"
+          OnClick="@(() => NavigateToDetail("Piano", "Kursu Piano : From Zero to Pro (Full Package)"))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>Kursu Piano : From Zero to
+              Pro (Full Package)</b></MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 11.650.000</MudText>
+      </MudCardContent>
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+      <MudCardMedia Image="img/Copy of Rectangle 12-6.png" Title="Vocal Class"
+        Style="height:250px; object-fit:cover; border-radius:16px;" />
+      <MudCardContent>
+        <MudText Typo="Typo.caption">Saxophone</MudText>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+          Style="text-decoration:none;" OnClick="@(() => NavigateToDetail("Saxophone", "Expert Level Saxophone"))">
+          <MudText Typo="Typo.subtitle1" class="mt-2 mb-2" Style="width: 400px"><b>Expert Level Saxophone</b>
+          </MudText>
+        </MudButton>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 7.350.000</MudText>
+      </MudCardContent>
+    </MudItem>
+  </MudGrid>
+</MudContainer>
+
+<!-- Pilih Kelas Impian -->
+<div style="position: relative; width:100%; min-height:520px; overflow:hidden; margin-top:5rem;">
+  <!-- gradient overlay -->
+  <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background-color: rgb(247, 247, 247);
+        z-index:1;
+    "></div>
+  <div style="position: relative; z-index:2;">
+    <MudContainer Class="mud-py-10">
+      <!-- Title -->
+      <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Secondary" Class="mb-20 mt-15" Style="font-weight:500;">
+        Pilih kelas impian kamu
+      </MudText>
+      <!-- Grid 2 rows × 4 items -->
+      <MudGrid Justify="Justify.Center" Spacing="6">
+
+        <!-- Drum -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 11.png" Alt="Drum"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Drum"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Drum</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Piano -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 12.png" Alt="Piano"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Piano"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Piano</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Gitar -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 13.png" Alt="Gitar"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Gitar"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Gitar</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Bass -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 13-1.png" Alt="Bass"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Bass"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Bass</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Biola -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 14.png" Alt="Biola"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Biola"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Biola</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Menyanyi -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 15.png" Alt="Menyanyi"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Menyanyi"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Menyanyi</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Flute -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 16-1.png" Alt="Flute"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Flute"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Flute</MudText>
+          </MudButton>
+        </MudItem>
+
+        <!-- Saxophone -->
+        <MudItem xs="12" sm="3" Class="d-flex flex-column align-center">
+          <MudImage Src="img/Copy of Rectangle 16-1.png" Alt="Saxophone"
+            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+          <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="clickable-text text-left-button"
+            Style="text-decoration:none;" OnClick="@(() => Navigation.NavigateTo($"/listpage/Saxophone"))">
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mud-text-dark ">Saxophone</MudText>
+          </MudButton>
+        </MudItem>
+      </MudGrid>
+    </MudContainer>
+  </div>
+</div>
+
+<!-- Benefit Section -->
+<MudContainer MaxWidth="MaxWidth.Large" Style="margin-top:5rem; margin-bottom:5rem;">
+  <MudGrid align-items="Center">
+    <!-- Left: Image with circle background -->
+    <MudItem xs="12" sm="5" Class="d-flex justify-center">
+      <div style="position: relative; width: 500px; height: 500px;">
+        <!-- Person image -->
+        <MudImage Src="img/Picture1.png" Alt="Person playing guitar"
+          Style="position: relative; width: 400px; height: auto; object-fit: contain;" />
+      </div>
+    </MudItem>
+
+    <!-- Right: Text content -->
+    <MudItem xs="12" sm="7">
+      <MudText Typo="Typo.h5" Color="Color.Secondary" Class="mud-typography-bold mud-mb-4" Style="margin-top:4rem;">
+        Benefit ikut Apel Course
+      </MudText>
+
+      <MudText Typo="Typo.body1" Class="mt-6 mud-text-dark" Align="Align.Justify">
+        Mengikuti Aple Course memberikan banyak manfaat bagi pengembangan diri
+        dan karier. Melalui materi yang terstruktur dan mudah dipahami, peserta
+        dapat meningkatkan keterampilan secara praktis dan aplikatif. Selain itu,
+        Aple Course juga menyediakan akses ke mentor berpengalaman dan komunitas
+        belajar yang suportif, sehingga proses belajar menjadi lebih menyenangkan
+        dan terarah. Dengan bekal ilmu dari Aple Course, peserta akan lebih percaya
+        diri menghadapi tantangan di dunia kerja maupun dalam mengembangkan proyek pribadi.
+      </MudText>
+    </MudItem>
+  </MudGrid>
+</MudContainer>
+
+<style>
+  .text-left-button {
+    text-align: left;
+    padding-left: 0;
+  }
+
+  .clickable-text:hover {
+    text-decoration: none;
+    cursor: pointer;
+    color: #5D5FEF;
+    background-color: transparent;
+  }
+</style>
+
+@code {
+  private bool _isLoading = true;
+
+  private string errorMessage = string.Empty;
+  void NavigateToDetail(string category, string courseName)
+  {
+    var encodedCourse = Uri.EscapeDataString(courseName);
+    Navigation.NavigateTo($"/detailkelas/{category}/{encodedCourse}");
+  }
+  @* protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      var user = await ApiService.GetCurrentUserAsync();
+      if (user == null)
+      {
+        Snackbar.Add("Gagal memuat data pengguna.", Severity.Error);
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Terjadi kesalahan: {ex.Message}");
+    }
+  } *@
+
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      try
+      {
+        await Task.Delay(100);
+
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (!isAuthenticated)
+        {
+          Navigation.NavigateTo("/login");
+          return;
+        }
+
+        await ApiService.InitializeAsync();
+      }
+      catch (InvalidOperationException ex)
+      {
+        Console.WriteLine($"[DEBUG] JSRuntime belum siap: {ex.Message}");
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+      {
+        errorMessage = "Unauthorized: Please log in again.";
+        Navigation.NavigateTo("/login");
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+      {
+        errorMessage = "Forbidden: You don't have admin access.";
+      }
+      catch (Exception ex)
+      {
+        errorMessage = $"Failed to load admin data: {ex.Message}";
+      }
+      finally
+      {
+        _isLoading = false;
+        StateHasChanged();
+      }
+    }
+  }
+
+}

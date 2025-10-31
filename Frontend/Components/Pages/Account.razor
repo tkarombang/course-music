@@ -1,0 +1,176 @@
+@page "/account"
+@using Frontend.DTOs
+@using Frontend.Services
+@using Frontend.Interface
+@layout Layout.UserMenu
+@* @inject HttpClient Http *@
+@inject NavigationManager Navigation
+@inject ClientApiService ApiService
+@inject IAuthClientService AuthService
+@inject ISnackbar Snackbar
+@rendermode InteractiveServer
+
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudMainContent>
+    <MudContainer >
+        <MudPaper Class="pa-6 mb-20" Elevation="2" Style="background-color:white; width:500px; margin:auto;">
+            
+            <!-- 🔹 Ikon AccountCircle di atas judul -->
+                <div class="d-flex justify-center mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Large" Color="Color.Tertiary" />
+                </div>
+
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Account Information</MudText>
+
+            @if (_isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+            }
+            else if (_user != null)
+            {
+                <MudGrid class="pa-5 mb-10">
+                    <MudItem xs="4"><b>Username</b></MudItem>
+                    <MudItem xs="8">: @_user.Username</MudItem>
+
+                    <MudItem xs="4"><b>Email</b></MudItem>
+                    <MudItem xs="8">: @_user.Email</MudItem>
+
+                    <MudItem xs="4"><b>Role</b></MudItem>
+                    <MudItem xs="8">: @_user.Role</MudItem>
+                </MudGrid>
+
+                @* <MudButton Variant="Variant.Filled" Color="Color.Error" Class="mt-5 w-100" OnClick="Logout">
+                    Logout
+                </MudButton> *@
+            }
+            else
+            {
+                <MudText Color="Color.Error" Align="Align.Center">Failed to load user data.</MudText>
+            }
+        </MudPaper>
+    </MudContainer>
+</MudMainContent>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudMainContent Class="m-auto h-100">
+    <MudContainer >
+        <MudPaper Class="pa-5 mb-5" Elevation="2" Style="background-color:white; width:400px; margin:auto;">
+            
+            <!-- 🔹 Ikon AccountCircle di atas judul -->
+                <div class="d-flex justify-center mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Large" Color="Color.Tertiary" />
+                </div>
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Account Information</MudText>
+
+            @if (_isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+            }
+            else if (_user != null)
+            {
+                <MudGrid class="pa-5 mb-10">
+                    <MudItem xs="4"><b>Username</b></MudItem>
+                    <MudItem xs="8">: @_user.Username</MudItem>
+
+                    <MudItem xs="4"><b>Email</b></MudItem>
+                    <MudItem xs="8">: @_user.Email</MudItem>
+
+                    <MudItem xs="4"><b>Role</b></MudItem>
+                    <MudItem xs="8">: @_user.Role</MudItem>
+                </MudGrid>
+
+                @* <MudButton Variant="Variant.Filled" Color="Color.Error" Class="mt-5 w-100" OnClick="Logout">
+                    Logout
+                </MudButton> *@
+            }
+            else
+            {
+                <MudText Color="Color.Error" Align="Align.Center">Failed to load user data.</MudText>
+            }
+        </MudPaper>
+    </MudContainer>
+</MudMainContent>
+</MudHidden>
+
+
+@code {
+    private UserDto? _user;
+    private bool _isLoading = true;
+    @* private int currentUserId = 1006; // ID tetap *@
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ApiService.InitializeAsync();
+        _user = await ApiService.GetCurrentUserAsync();
+        _isLoading = false;
+        
+        await FetchMyAccountAsync();
+    }
+
+    protected async Task FetchMyAccountAsync()
+    {
+        try
+        {
+            if(_user == null)
+            {
+                Snackbar.Add("GAGAL MEMUAT DATA", Severity.Error);
+
+                Navigation.NavigateTo("/login");
+            }
+        }
+        catch (Exception err)
+        {
+            Console.WriteLine($"GAGAL..! {err}");
+            Snackbar.Add("TERJADI KESALAHAN MEMUAT DATA..", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    @* protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"http://localhost:5058/api/User/{currentUserId}");
+            var json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[API RESPONSE USER]: {json}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _user = await response.Content.ReadFromJsonAsync<UserDto>();
+            }
+            else
+            {
+                Snackbar.Add("Failed to fetch user data.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR FETCH USER]: {ex.Message}");
+            Snackbar.Add("Failed to load account data.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    } *@
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Snackbar.Add("Logged out successfully!", Severity.Success);
+        Navigation.NavigateTo("/login", true);
+    }
+
+    @* public class UserDto
+    {
+        public string? Username { get; set; }
+        public string? Email { get; set; }
+        public string? Role { get; set; }
+    } *@
+}

@@ -1,0 +1,173 @@
+@using Frontend.Services
+@using Frontend.Interface
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject IAuthClientService AuthService
+@inject ClientApiService ApiService
+@inject ISnackbar Snackbar
+@rendermode InteractiveServer
+
+
+<MudAppBar Class="sticky-appbar" Style="height:91.5px; min-height:91.5px; justify-content: center;" Fixed="false">
+
+    <!-- Logo di kiri -->
+    <MudLink OnClick="@(() => Navigation.NavigateTo("/landingpage"))">
+        <MudImage Class="ml-4 mb-1" Src="img/Logo.svg" Alt="Music" Elevation="0" />
+    </MudLink>
+
+
+    <!-- Spacer untuk dorong item ke kanan -->
+    <MudSpacer />
+
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <!-- Shopping Cart -->
+        <MudIconButton Icon="@Icons.Material.Rounded.ShoppingCart" Color="Color.Tertiary"
+            OnClick="@(() => Navigation.NavigateTo("/checkout"))" Class="mr-10" />
+
+        <!-- Nav Links -->
+        <MudButton Variant="Variant.Text" Href="/kelasku" Class="kelas-style">
+            Kelasku
+        </MudButton>
+
+        <MudButton Variant="Variant.Text" Class="pembelian-style" OnClick="@(() => Navigation.NavigateTo("/invoice"))">
+            Pembelian
+        </MudButton>
+
+        <!-- Divider -->
+        <MudDivider Vertical="true" FlexItem Class="mx-10"
+            Style="background-color:black; width:3px; height:30px; align-self:center;" />
+
+        <!-- Account -->
+        <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Tertiary" Class="mr-10"
+            OnClick="@(() => Navigation.NavigateTo("/account"))" />
+
+        <!-- Exit Menu -->
+        <MudMenu Icon="@Icons.Material.Filled.ExitToApp" Color="Color.Tertiary" Dense="true" Variant="Variant.Text"
+            class="mr-4">
+
+            <MudMenuItem Icon="@Icons.Material.TwoTone.Logout" IconColor="Color.Primary" Label="Logout"
+                OnClick="OnLogoutClicked" ForceLoad />
+        </MudMenu>
+    </MudHidden>
+
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" OnClick="@(() => OpenDrawer(Anchor.End))"
+            Color="Color.Tertiary" />
+    </MudHidden>
+
+
+    <MudDrawer Class="gradient-drawer" Color="Color.Primary" @bind-Open="@_open" Anchor="@_anchor" Elevation="1"
+        Variant="@DrawerVariant.Temporary" OverlayAutoClose="@_overlayAutoClose">
+
+        <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo("/checkout"))"
+            Class="pembelian-style pa-5">CHECKOUT</MudButton>
+        <MudButton Variant="Variant.Text" Href="/kelasku" Class="pembelian-style pa-5">Kelasku</MudButton>
+        <MudButton Variant="Variant.Text" Class="pembelian-style pa-5"
+            OnClick="@(() => Navigation.NavigateTo("/invoice"))">Pembelian</MudButton>
+        <MudButton Variant="Variant.Text" Class="pembelian-style pa-5"
+            OnClick="@(() => Navigation.NavigateTo("/account"))">Account</MudButton>
+        <MudMenuItem Class="text-white pa-5 logout-text" Label="LOGOUT" OnClick="OnLogoutClicked" ForceLoad
+            Icon="@Icons.Material.TwoTone.Logout" />
+    </MudDrawer>
+</MudAppBar>
+
+@code {
+    private bool _open;
+    private Anchor _anchor;
+    private bool _overlayAutoClose = true;
+    private bool _isLoading = true;
+
+    private string errorMessage = string.Empty;
+    private void OpenDrawer(Anchor anchor)
+    {
+        _open = true;
+        _anchor = anchor;
+    }
+    private async Task OnLogoutClicked()
+    {
+        await AuthService.Logout();
+        Snackbar.Add("TERIMA KASIH", Severity.Success);
+        Console.WriteLine("Logout");
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    @* protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+                if (!isAuthenticated)
+                {
+                    Navigation.NavigateTo("/login");
+                    return;
+                }
+
+                await ApiService.InitializeAsync();
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "Unauthorized: Please log in again.";
+                Navigation.NavigateTo("/login");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                errorMessage = "Forbidden: You don't have admin access.";
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Failed to load admin data: {ex.Message}";
+            }
+            finally
+            {
+                _isLoading = false;
+                StateHasChanged();
+            }
+        }
+    } *@
+}
+
+<style>
+    .sticky-appbar {
+        top: 0;
+        z-index: 1000;
+    }
+
+    .pembelian-style {
+        font-family: 'Poppins', sans-serif;
+        color: black;
+        font-weight: bold;
+        font-style: medium;
+        justify-content: flex-start;
+        font-size: 13px;
+        line-height: 100%;
+        letter-spacing: 0%;
+    }
+
+    .kelas-style {
+        font-family: 'Poppins', sans-serif;
+        color: black;
+        font-weight: bold;
+        font-style: medium;
+        justify-content: flex-start;
+        font-size: 13px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        margin-right: 40px;
+    }
+
+    .gradient-drawer {
+        background-image: linear-gradient(to top, #cc641a, #F2C94C);
+        /* Example: purple to blue */
+        color: white;
+        /* Optional: adjust text color for contrast */
+    }
+
+    .logout-text:hover {
+        background-color: rgb(195, 63, 63);
+    }
+</style>

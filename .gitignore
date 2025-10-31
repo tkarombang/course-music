@@ -1,0 +1,88 @@
+## Ignore build outputs
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]*/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Entity Framework / Migrations
+*_i.c
+*_p.c
+*_h.h
+*.dbmdl
+*.jfm
+
+# Generated files
+Generated_Code/
+ClientApp/build/
+wwwroot/dist/
+wwwroot/node_modules/
+
+# Blazor specific
+bin/
+obj/
+wwwroot/css/
+wwwroot/js/
+wwwroot/lib/
+wwwroot/.cache/
+wwwroot/images/
+
+# Node / npm / yarn (if using JS interop or frontend assets)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# Environment & config
+*.env
+*.env.*
+appsettings.*.json
+!appsettings.json   # keep base appsettings.json under version control
+
+# Publish outputs
+publish/
+out/
+artifacts/
+
+# Coverage / test
+*.coverage
+*.coveragexml
+TestResult.xml
+TestResults/
+coverage/
+*.opencover.xml
+
+# Other
+*.tmp
+*.bak
+*.swp
+*.db
+*.sqlite
+
+.fake

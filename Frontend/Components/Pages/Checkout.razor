@@ -1,0 +1,563 @@
+@page "/checkout"
+@layout Layout.CheckoutLayout
+@rendermode InteractiveServer
+@using Frontend.DTOs
+@using Frontend.Services
+@using Cart.Models
+@using System.Globalization
+@using Microsoft.AspNetCore.SignalR.Client
+@inject CartService CartService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@* @inject HttpClient Http *@
+@inject ClientApiService ApiService
+
+@implements IDisposable
+
+<PageTitle>Checkout</PageTitle>
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudCard Class="pa-6 border-none" Outlined="true">
+        <!-- Header: Pilih Semua -->
+        <MudStack Row Class="mb-4">
+            <MudCheckBox @bind-Value="SelectAll" Color="Color.Secondary" Label="Pilih Semua" />
+        </MudStack>
+
+        <MudDivider Style="background-color:black; height:2px; width: 100%" />
+
+        <!-- List Item -->
+        @foreach (var item in CartService.GetCart())
+        {
+            <MudContainer Class="pa-5 ml-n7">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                    <!-- Kiri -->
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudCheckBox @bind-Value="item.IsSelected" Color="Color.Secondary" />
+
+                        <MudImage Src="@($"http://localhost:5058/img/list_kelas/{item.ImageUrl}")" Class="rounded-lg"
+                            Width="200" Height="133" />
+
+                        <MudStack Style="margin-left:16px;" AlignItems="AlignItems.Start" Spacing="1">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:bold;">
+                                @item.ClassName
+                            </MudText>
+                            <MudText Typo="Typo.body2">
+                                Jadwal: @(item.Jadwal.ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID")))
+                            </MudText>
+                            <MudText Color="Color.Secondary">
+                                IDR @item.Price.ToString("N0")
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+
+                    <!-- Hapus -->
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Filled.RestoreFromTrash" Color="Color.Error"
+                            OnClick="@(() => RemoveItem(item.IdCourse))" />
+                        <MudText Typo="Typo.body2">Delete</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudContainer>
+
+            <MudDivider Class="mt-6" Style="background-color:black; height:2px; width: 100%" />
+        }
+
+        <!-- Footer Total -->
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.subtitle1">Total Biaya:</MudText>
+                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                    IDR @Total.ToString("N0")
+                </MudText>
+            </MudStack>
+
+            <MudButton Color="Color.Secondary" Variant="Variant.Filled" Style="width:250px;" OnClick="@ToggleOpen">
+                Bayar Sekarang
+            </MudButton>
+        </MudStack>
+    </MudCard>
+
+    @if (_open)
+    {
+        <div class="overlay"></div>
+        <MudPopover Open="@_open" Fixed="true" Class="popup-view px-4 pt-4" Style="width:374px; height:550px;">
+            <div class="d-flex flex-column">
+                <MudText Class="mb-4" Typo="Typo.subtitle1" Align="Align.Center">Pilih Metode Pembayaran</MudText>
+
+                <MudStack Spacing="0">
+                    @if (PaymentMethods == null)
+                    {
+                        <MudText Class="ml-2 mb-2">Memuat metode pembayaran...</MudText>
+                    }
+                    else if (!PaymentMethods.Any())
+                    {
+                        <MudText Color="Color.Warning" Class="ml-2 mb-2">Tidak ada metode pembayaran tersedia.</MudText>
+                    }
+                    else
+                    {
+                        @foreach (var m in PaymentMethods)
+                        {
+                            <MudStack Row AlignItems="AlignItems.Center" Class="@GetPaymentClass(m.Name_Methode)"
+                                Style="cursor:pointer; padding:8px; border-radius:8px;"
+                                @onclick="@(() => SelectPayment(m.Name_Methode))">
+                                <!-- gambar dari wwwroot/img -->
+                                <MudImage Style="width:40px; height:40px; object-fit:contain;"
+                                    Src="@($"http://localhost:5058{m.Logo_Methode}")" Alt="@m.Name_Methode" />
+                                <MudText Typo="Typo.body1" Class="ml-2">@m.Name_Methode</MudText>
+                                @if (_selectedPayment == m.Name_Methode)
+                                {
+                                    <MudSpacer />
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" />
+                                }
+                            </MudStack>
+                        }
+                    }
+                </MudStack>
+
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                    <MudButton Variant="Variant.Outlined" OnClick="@ToggleOpen" Style="width: 155px; height: 48px;"
+                        Color="Color.Secondary">
+                        Close
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="@ConfirmPayment" Style="width: 155px; height: 48px"
+                        Color="Color.Secondary" Disabled="@string.IsNullOrEmpty(_selectedPayment)">
+                        Bayar
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudPopover>
+    }
+</MudHidden>
+
+<!-- MOBILE SECTION -->
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudCard Class="pa-6 border-none" Outlined="true">
+        <!-- Header: Pilih Semua -->
+        <MudStack Row Class="mb-4">
+            <MudCheckBox @bind-Value="SelectAll" Color="Color.Secondary" Label="Pilih Semua" />
+        </MudStack>
+
+        <MudDivider Style="background-color:black; height:2px; width: 100%" />
+
+        <!-- List Item -->
+        @foreach (var item in CartService.GetCart())
+        {
+            <MudContainer Class="pa-5 ml-n7">
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                    <!-- Kiri -->
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudCheckBox @bind-Value="item.IsSelected" Color="Color.Secondary" />
+
+                        <MudImage Src="@($"http://localhost:5058/img/list_kelas/{item.ImageUrl}")" Class="rounded-lg"
+                            Width="200" Height="133" />
+
+                        <MudStack Style="margin-left:16px;" AlignItems="AlignItems.Start" Spacing="1">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:bold;">
+                                @item.ClassName
+                            </MudText>
+                            <MudText Typo="Typo.body2">
+                                Jadwal: @(item.Jadwal.ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID")))
+                            </MudText>
+                            <MudText Color="Color.Secondary">
+                                IDR @item.Price.ToString("N0")
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+
+                    <!-- Hapus -->
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Filled.RestoreFromTrash" Color="Color.Error"
+                            OnClick="@(() => RemoveItem(item.IdCourse))" />
+                        <MudText Typo="Typo.body2">Delete</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudContainer>
+
+            <MudDivider Class="mt-6" Style="background-color:black; height:2px; width: 100%" />
+        }
+
+        <!-- Footer Total -->
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.subtitle1">Total Biaya:</MudText>
+                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                    IDR @Total.ToString("N0")
+                </MudText>
+            </MudStack>
+
+            <MudButton Color="Color.Secondary" Variant="Variant.Filled" Style="width:250px;" OnClick="@ToggleOpen">
+                Bayar Sekarang
+            </MudButton>
+        </MudStack>
+    </MudCard>
+
+    @if (_open)
+    {
+        <div class="overlay"></div>
+        <MudPopover Open="@_open" Fixed="true" Class="popup-view-mobile px-4 pt-4" Style="width:374px; height:550px;">
+            <div class="d-flex flex-column">
+                <MudText Class="mb-4" Typo="Typo.subtitle1" Align="Align.Center">Pilih Metode Pembayaran</MudText>
+
+                <MudStack Spacing="0">
+                    @if (PaymentMethods == null)
+                    {
+                        <MudText Class="ml-2 mb-2">Memuat metode pembayaran...</MudText>
+                    }
+                    else if (!PaymentMethods.Any())
+                    {
+                        <MudText Color="Color.Warning" Class="ml-2 mb-2">Tidak ada metode pembayaran tersedia.</MudText>
+                    }
+                    else
+                    {
+                        @foreach (var m in PaymentMethods)
+                        {
+                            <MudStack Row AlignItems="AlignItems.Center" Class="@GetPaymentClass(m.Name_Methode)"
+                                Style="cursor:pointer; padding:8px; border-radius:8px;"
+                                @onclick="@(() => SelectPayment(m.Name_Methode))">
+                                <!-- gambar dari wwwroot/img -->
+                                <MudImage Style="width:40px; height:40px; object-fit:contain;"
+                                    Src="@($"http://localhost:5058{m.Logo_Methode}")" Alt="@m.Name_Methode" />
+                                <MudText Typo="Typo.body1" Class="ml-2">@m.Name_Methode</MudText>
+                                @if (_selectedPayment == m.Name_Methode)
+                                {
+                                    <MudSpacer />
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" />
+                                }
+                            </MudStack>
+                        }
+                    }
+                </MudStack>
+
+                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                    <MudButton Variant="Variant.Outlined" OnClick="@ToggleOpen" Style="width: 155px; height: 48px;"
+                        Color="Color.Secondary">
+                        Close
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="@ConfirmPayment" Style="width: 155px; height: 48px"
+                        Color="Color.Secondary" Disabled="@string.IsNullOrEmpty(_selectedPayment)">
+                        Bayar
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudPopover>
+    }
+</MudHidden>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .popup-view {
+        position: fixed !important;
+        top: 100px !important;
+        left: 550px !important;
+        z-index: 1500;
+    }
+
+    .popup-view-mobile {
+        position: fixed !important;
+        top: 100px !important;
+        left: 40px !important;
+        z-index: 1500;
+    }
+
+    .payment-item.selected {
+        background-color: #f2f2f2;
+        border: 2px solid #6c63ff;
+    }
+</style>
+
+@code {
+    // SignalR hub connection
+    private HubConnection? _hubConnection;
+
+    // state
+    private bool _open;
+    private string? _selectedPayment;
+    private UserDto? _user;
+    private bool _isLoading = true;
+
+    // local DTO supaya tidak bergantung namespace shared (aman)
+    private class PaymentMethodLocal
+    {
+        public int Id { get; set; }
+        public string Name_Methode { get; set; } = string.Empty;
+        public string Logo_Methode { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+    }
+
+    private List<PaymentMethodLocal>? PaymentMethods;
+
+    private decimal Total => CartService.GetTotal();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            await ApiService.InitializeAsync();
+
+            _user = await ApiService.GetCurrentUserAsync();
+
+            if (_user == null)
+            {
+                Snackbar.Add("SESI LOGIN TIDAK VALID, SILAHKAN LOGIN KEMBALI,", Severity.Error);
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // subscribe perubahan CartService
+            CartService.OnChange += StateHasChanged;
+
+            // load initial list
+            await LoadPaymentMethods();
+
+            await InitSignalRAsync();
+
+        }
+        catch (Exception err)
+        {
+            Snackbar.Add($"Gagal memuat halaman checkout: {err.Message}", Severity.Error);
+            Navigation.NavigateTo("/login");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+
+    }
+
+    private async Task InitSignalRAsync()
+    {
+        // init SignalR connection (ganti path jika Hub berada di route lain)
+        try
+        {
+            _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/paymentMethodHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+            // Handler event dari backend: PaymentMethodStatusChanged(id, status)
+            _hubConnection.On<int, string>("PaymentMethodStatusChanged", (id, status) =>
+            {
+                // run on main UI thread
+                _ = InvokeAsync(() => OnPaymentMethodStatusChanged(id, status));
+            });
+
+            await _hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SignalR init error: {ex.Message}");
+            // tidak fatal — app tetap jalan tanpa realtime
+        }
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+
+        if (_hubConnection != null)
+        {
+            _ = _hubConnection.StopAsync();
+            _ = _hubConnection.DisposeAsync();
+        }
+    }
+
+    // Load payment methods from backend
+    private async Task LoadPaymentMethods()
+    {
+        try
+        {
+            @* var response = await Http.GetAsync("api/PaymentMethod"); *@
+            var data = await ApiService.GetAsync<List<PaymentMethodLocal>>("api/PaymentMethod");
+            if (data != null && data.Any())
+            {
+                @* var data = await response.Content.ReadFromJsonAsync<List<PaymentMethodLocal>>(); *@
+                PaymentMethods = data?.Where(p => p.Status.Equals("Active", StringComparison.OrdinalIgnoreCase)).ToList()
+                ?? new List<PaymentMethodLocal>();
+            }
+            else
+            {
+                @* var code = (int)response.StatusCode;
+                var text = await response.Content.ReadAsStringAsync(); *@
+                @* Console.WriteLine($"Gagal memuat payment methods: {code} - {text}"); *@
+                @* Snackbar.Add($"Gagal memuat metode pembayaran (HTTP {code}).", Severity.Error); *@
+                Snackbar.Add("TIDAK ADA METODE PEMBAYARAN YANG AKTIF.", Severity.Error);
+                PaymentMethods = new List<PaymentMethodLocal>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading payment methods: {ex.Message}");
+            Snackbar.Add("Terjadi kesalahan saat memuat metode pembayaran.", Severity.Error);
+            PaymentMethods = new List<PaymentMethodLocal>();
+        }
+    }
+
+    // Called when backend notifies via SignalR
+    private void OnPaymentMethodStatusChanged(int id, string status)
+    {
+        if (PaymentMethods == null) return;
+
+        // jika status Inactive -> hapus dari list
+        if (string.Equals(status, "Inactive", StringComparison.OrdinalIgnoreCase))
+        {
+            var toRemove = PaymentMethods.FirstOrDefault(x => x.Id == id);
+            if (toRemove != null)
+            {
+                PaymentMethods.Remove(toRemove);
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            // kalau aktif, refresh list element (atau fetch single item)
+            // cara paling mudah: reload seluruh list
+            _ = Task.Run(async () =>
+            {
+                await LoadPaymentMethods();
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    private void ToggleOpen() => _open = !_open;
+    private void SelectPayment(string method) => _selectedPayment = method;
+
+    private string GetPaymentClass(string name)
+    {
+        var extra = _selectedPayment == name ? "payment-item selected" : "payment-item";
+        return extra;
+    }
+
+    // Konfirmasi pembayaran: panggil API Checkout untuk setiap item yang dipilih
+    private async Task ConfirmPayment()
+    {
+        if (string.IsNullOrEmpty(_selectedPayment))
+        {
+            Snackbar.Add("Silakan pilih metode pembayaran terlebih dahulu.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            int? currentUserId = await ApiService.GetCurrentUserId(); // TODO: ganti dengan ID user dari token login
+            if (currentUserId == null)
+            {
+                Snackbar.Add("GAGAL MENGAMBIL PENGGUNA ID TOKEN.", Severity.Error);
+                return;
+            }
+
+            var selectedItems = CartService.GetCart().Where(c => c.IsSelected).ToList();
+            if (!selectedItems.Any())
+            {
+                Snackbar.Add("Pilih minimal 1 item untuk dibayar.", Severity.Warning);
+                return;
+            }
+
+            // Dapatkan metode pembayaran yang dipilih
+            var selectedMethod = PaymentMethods?.FirstOrDefault(p => p.Name_Methode == _selectedPayment);
+            if (selectedMethod == null)
+            {
+                Snackbar.Add("Metode pembayaran tidak ditemukan.", Severity.Error);
+                return;
+            }
+
+            // Hitung total harga dari item yang dipilih
+            decimal totalAmount = selectedItems.Sum(i => i.Price);
+
+            // Kirim langsung ke PaymentController
+            var paymentDto = new
+            {
+                IdUser = currentUserId,
+                IdPaymentMethod = selectedMethod.Id,
+                Status = "Paid",
+                Amount = totalAmount
+            };
+
+            @* var paymentResponse = await Http.PostAsJsonAsync("api/Payment", paymentDto); *@
+            var paymentResponse = await ApiService.PostRawAsync("api/Payment", paymentDto);
+            if (paymentResponse.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Pembayaran berhasil disimpan!", Severity.Success);
+
+                // Bersihkan cart
+                foreach (var item in selectedItems)
+                    CartService.RemoveFromCart(item.IdCourse);
+
+                CartService.NotifyStateChanged();
+                Navigation.NavigateTo("/purchaseberhasil");
+            }
+            else
+            {
+                var errorMsg = await paymentResponse.Content.ReadAsStringAsync();
+                Snackbar.Add($"Gagal menyimpan pembayaran: {errorMsg}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _open = false;
+        }
+    }
+
+
+
+    private bool SelectAll
+    {
+        get => CartService.GetCart().Any() && CartService.GetCart().All(x => x.IsSelected);
+        set
+        {
+            foreach (var item in CartService.GetCart())
+                item.IsSelected = value;
+
+            CartService.NotifyStateChanged();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RemoveItem(int idCourse)
+    {
+        int? currentUserId = await ApiService.GetCurrentUserId(); // testing dengan userId tetap
+        if(currentUserId == null)
+        {
+            Snackbar.Add("GAGAL MENGAMBIL ID PENGGUNA DARI TOKEN.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            // Panggil API DELETE di backend: /api/Checkout/{idUser}/{idCourse}
+            @* var response = await Http.DeleteAsync($"http://localhost:5058/api/Checkout/{currentUserId}/{idCourse}"); *@
+            var response = await ApiService.DeleteAsync($"api/Checkout/{currentUserId}/{idCourse}");
+            if (response.IsSuccessStatusCode)
+            {
+                // Hapus item dari cart di memory
+                CartService.RemoveFromCart(idCourse);
+                CartService.NotifyStateChanged();
+                Snackbar.Add("Item berhasil dihapus.", Severity.Success);
+            }
+            else
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Gagal menghapus item: {msg}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Terjadi kesalahan saat menghapus item: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

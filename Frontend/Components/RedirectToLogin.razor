@@ -1,0 +1,12 @@
+@page "/redirect-to-login"
+@using Frontend.Services
+@inject AuthClientService AuthService
+@inject NavigationManager navigation
+
+@code {
+  protected override async Task OnInitializedAsync()
+  {
+    await AuthService.Logout();
+    navigation.NavigateTo("/login");
+  }
+}

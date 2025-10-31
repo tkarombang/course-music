@@ -1,0 +1,110 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using Admin.Models
+@using Admin.Services
+@* @using Microsoft.AspNetCore.Authorization
+@attribute [Authorize] *@
+@layout Layout.MainLayout
+
+<MudDialog>
+  <TitleContent>
+    Add Payment
+  </TitleContent>
+  <DialogContent>
+    <MudPaper Class="pa-4">
+      <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+
+        <MudItem Class="d-flex">
+
+          <MudTextField T="string" Label="Nama Bank" @bind-Value="PaymentMethNew.NameMethod" Required="true"
+            RequiredError="Name is required!" />
+
+          <MudFileUpload T="IBrowserFile" FilesChanged="UploadLogo" MaximumFileSize="5000000"
+            Accept=".jpg, .jpeg, .png">
+            <ActivatorContent>
+              <MudFab Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Image"
+                Label="Logo Bank" />
+              <MudText Class="ml-2" Typo="Typo.caption">
+                @if (PaymentMethNew.LogoMethod != null)
+                {
+                  @PaymentMethNew.LogoMethod.Name
+                }
+                else
+                {
+                  <span>Pilih File...</span>
+                }
+              </MudText>
+            </ActivatorContent>
+          </MudFileUpload>
+          @if (showFileError)
+          {
+            <MudText Typo="Typo.caption" Color="Color.Error">Logo is required!</MudText>
+          }
+          @* <MudProgressLinear Class="mt-2" Visible="@_isUploading" Color="Color.Primary" Indeterminate="true" /> *@
+        </MudItem>
+
+
+        <MudText Class="mt-2">Status</MudText>
+        <div class="d-flex">
+          <MudRadioGroup T="string" @bind-Value="PaymentMethNew.Status" Required="true"
+            RequiredError="Account type is required!">
+            <MudRadio Value="@("Active")">Active</MudRadio>
+            <MudRadio Value="@("Inactive")">Inactive</MudRadio>
+          </MudRadioGroup>
+        </div>
+
+
+      </MudForm>
+    </MudPaper>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!success || PaymentMethNew.LogoMethod == null)">OK
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; }
+  private bool _isUploading = false;
+  private bool showFileError = false;
+  IList<IBrowserFile> _files = new List<IBrowserFile>();
+
+  private PayMetCreateModel PaymentMethNew { get; set; } = new()
+  {
+    Status = null,
+  };
+
+  private void UploadLogo(IBrowserFile file)
+  {
+    PaymentMethNew.LogoMethod = file;
+    showFileError = false;
+  }
+
+  private void Submit()
+  {
+    form!.Validate();
+    if (PaymentMethNew.LogoMethod == null)
+    {
+      showFileError = true;
+      success = false;
+    }
+    else
+    {
+      showFileError = false;
+    }
+
+    if (success) MudDialog.Close(DialogResult.Ok(PaymentMethNew));
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+
+  bool success;
+  string[] errors = { };
+  MudTextField<string> pwField1;
+  MudForm form;
+
+
+
+}

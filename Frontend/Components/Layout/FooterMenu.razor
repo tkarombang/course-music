@@ -1,0 +1,132 @@
+﻿@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-custom-footer py-8" Style="top: auto; bottom: 0;">
+  <MudGrid Spacing="5" Justify="Justify.Center">
+
+
+    <MudItem class="tentang">
+      <MudText Typo="Typo.subtitle2">Tentang</MudText>
+      <MudText Typo="Typo.caption" Align="Align.Justify" Class="mt-1 text-mobile-view">
+        Apel Course adalah program pembelajaran yang dirancang untuk membantu peserta meningkatkan 
+        keterampilan secara praktis dan efisien. Dengan materi yang mudah dipahami dan dukungan dari 
+        mentor berpengalaman, Apel Course menjadi pilihan tepat bagi siapa saja yang ingin belajar dengan 
+        cara yang terarah dan aplikatif.
+      </MudText>
+    </MudItem>
+
+    <MudItem xs="12" md="4" Class="produk">
+      <MudText Typo="Typo.subtitle2" Class="produk-mobile-view">Produk</MudText>
+      <MudItem Class="d-flex justify-space-around mr-20 custom-flex-parent">
+        <MudStack Spacing="1">
+          <div class="custom-flex">
+            <MudLink onclick="@(() => NavigateToCategory("Biola"))" Color="Color.Dark" >
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Biola</MudText>
+            </MudLink>
+            <MudLink onclick="@(() => NavigateToCategory("Gitar"))" Color="Color.Dark">
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Gitar</MudText>
+            </MudLink>
+            <MudLink onclick="@(() => NavigateToCategory("Drum"))" Color="Color.Dark">
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Drum</MudText>
+            </MudLink>
+          </div>
+        </MudStack>
+
+        <MudStack Spacing="1">
+          <div class="custom-flex">
+            <MudLink onclick="@(() => NavigateToCategory("Menyanyi"))" Color="Color.Dark">
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Menyanyi</MudText>
+            </MudLink>
+            <MudLink onclick="@(() => NavigateToCategory("Piano"))" Color="Color.Dark">
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Piano</MudText>
+            </MudLink>
+            <MudLink onclick="@(() => NavigateToCategory("Saxophone"))" Color="Color.Dark">
+              <MudText Typo="Typo.caption" Class="text-mobile-view">● Saxophone</MudText>
+            </MudLink>
+          </div>
+        </MudStack>
+
+        @* <MudList T="string">
+            <MudListItem Text="Menyanyi" Style="min-height: auto; padding: 2px 1.5rem;"/>
+            <MudListItem Text="Piano" Style="min-height: auto; padding: 2px 1.5rem;"/>
+            <MudListItem Text="Saxophone" Style="min-height: auto; padding: 2px 1.5rem;"/>
+        </MudList> *@
+      </MudItem>
+    </MudItem>
+
+    <MudItem class="alamat">
+      <MudText Typo="Typo.subtitle2">Alamat</MudText>
+      <MudText Typo="Typo.caption" Class="mt-2 text-mobile-view">Jl. Melati Indah No. 123, RT 04 RW 07, Kelurahan Sukamaju, Kecamatan Sukaraja, Kabupaten Bogor, Jawa Barat 16710</MudText>
+      <MudText Typo="Typo.subtitle2" Class="mt-4">Kontak:</MudText>
+      <div class="custom-flex-icon mt-2">
+        <MudIconButton Icon="@Icons.Material.Filled.LocalPhone" Variant="Variant.Filled" Size="Size.Small"
+          Class="rounded-circle p-2" Style="background-color: #5D5FEF; color: #F2C94C" />
+        <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Variant="Variant.Filled" Size="Size.Small"
+          Class="rounded-circle p-2" Style="background-color: #5D5FEF; color: #F2C94C" />
+        <MudIconButton Icon="@Icons.Custom.Brands.YouTube" Variant="Variant.Filled" Size="Size.Small"
+          Class="rounded-circle p-2" Style="background-color: #5D5FEF; color: #F2C94C" />
+        <MudIconButton Icon="@Icons.Custom.Brands.Telegram" Variant="Variant.Filled" Size="Size.Small"
+          Class="rounded-circle tele p-2" Style="background-color: #5D5FEF; color: #F2C94C" />
+        <MudIconButton Icon="@Icons.Material.Filled.Email" Variant="Variant.Filled" Size="Size.Small"
+          Class="rounded-circle p-2" Style="background-color: #5D5FEF; color: #F2C94C" />
+      </div>
+    </MudItem>
+
+
+  </MudGrid>
+</MudContainer>
+
+@code {
+    private void NavigateToCategory(string categoryName)
+    {
+        Navigation.NavigateTo($"/listpage/{categoryName}");
+    }
+}
+
+
+
+<style>
+  .my-custom-footer {
+    position: relative !important;
+    background-color: #F2C94C;
+    position: fixed;
+    width: 100%;
+    padding: 3rem 0;
+    border-radius: 0;
+  }
+
+  .tentang {
+    max-width: 30vw;
+  }
+
+  .produk {
+    max-width: 30vw;
+  }
+
+  .alamat {
+    max-width: 30vw;
+  }
+
+  .compact-list-item {
+    line-height: 1.2 !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    min-height: auto !important;
+  }
+
+  .custom-flex {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .produk-mobile-view {
+    margin-left: 2rem;
+  }
+
+  .custom-flex-icon {
+    display: flex;
+    gap: 18px ;
+    justify-items: center;
+    align-items: center;
+  }
+</style>

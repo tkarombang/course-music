@@ -1,0 +1,171 @@
+@page "/invoice"
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@* @inject HttpClient Http *@
+@inject IJSRuntime JS
+@using System.Globalization
+@using System.Net.Http.Json
+@using Frontend.Services
+
+@inject ClientApiService ApiService
+
+<PageTitle>Invoice</PageTitle>
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudGrid Spacing="1" style="align-items= start;" class="pa-5">
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/landingpage"))">
+            Beranda >
+        </MudText>
+        <MudText Typo="Typo.body2" class="pa-5 mt-3 ml-n8 invoice-text" style="color:#5D5FEF;">Invoice</MudText>
+    </MudGrid>
+
+    <MudPaper Class="pa-10 mt-n10" style="width: 100%; height:70vh">
+        <MudText Typo="Typo.h5" Class="mb-4" style="font-weight: bold">Menu Invoice</MudText>
+
+        <MudTable Items="@Invoices" Hover="true" Breakpoint="Breakpoint.Sm" Class="custom-invoice-table"
+                  RowClassFunc="@( (item, rowNumber) => (rowNumber + 1) % 2 == 0 ? "even-row" : null )">
+            <HeaderContent>
+                <MudTh style="text-align:center;">No</MudTh>
+                <MudTh style="text-align:center;">No. Invoice</MudTh>
+                <MudTh style="text-align:center;">Tanggal Beli</MudTh>
+                <MudTh style="text-align:center;">Jumlah Kursus</MudTh>
+                <MudTh style="text-align:center;">Total Harga</MudTh>
+                <MudTh style="text-align:center;">Action</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd style="text-align:center;" DataLabel="No">@context.Index</MudTd>
+                <MudTd style="text-align:center;" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Tanggal Beli">@context.TanggalBeli.ToString("dd MMMM yyyy", new CultureInfo("id-ID"))</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Jumlah Kursus">@context.JumlahKursus</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Total Harga">@($"IDR {context.TotalHarga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Action">
+                    <MudButton class="rounded-lg" style="width: 180px; height: 41px"
+                               Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="@(() => Navigation.NavigateTo($"/rincian/{context.NoInvoice}"))">
+                        Rincian
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudGrid Spacing="1" style="align-items= start;" class="pa-5">
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/landingpage"))">
+            Beranda >
+        </MudText>
+        <MudText Typo="Typo.body2" class="pa-5 mt-3 ml-n8 invoice-text" style="color:#5D5FEF;">Invoice</MudText>
+    </MudGrid>
+
+    <MudPaper Class="pa-10 mt-n10">
+        <MudText Typo="Typo.h5" Class="mb-4" style="font-weight: bold">Menu Invoice</MudText>
+
+        <MudTable Items="@Invoices" Hover="true" Breakpoint="Breakpoint.Sm" Class="custom-invoice-table"
+                  RowClassFunc="@( (item, rowNumber) => (rowNumber + 1) % 2 == 0 ? "even-row" : null )">
+            <HeaderContent>
+                <MudTh style="text-align:center;">No</MudTh>
+                <MudTh style="text-align:center;">No. Invoice</MudTh>
+                <MudTh style="text-align:center;">Tanggal Beli</MudTh>
+                <MudTh style="text-align:center;">Jumlah Kursus</MudTh>
+                <MudTh style="text-align:center;">Total Harga</MudTh>
+                <MudTh style="text-align:center;">Action</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd style="text-align:center;" DataLabel="No">@context.Index</MudTd>
+                <MudTd style="text-align:center;" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Tanggal Beli">@context.TanggalBeli.ToString("dd MMMM yyyy", new CultureInfo("id-ID"))</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Jumlah Kursus">@context.JumlahKursus</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Total Harga">@($"IDR {context.TotalHarga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")</MudTd>
+                <MudTd style="text-align:center;" DataLabel="Action">
+                    <MudButton class="rounded-lg" style="width: 180px; height: 41px"
+                               Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="@(() => Navigation.NavigateTo($"/rincian/{context.NoInvoice}"))">
+                        Rincian
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudHidden>
+
+@code {
+    private List<InvoiceDto> Invoices = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            int? currentUserId = await ApiService.GetCurrentUserId();
+            var response = await ApiService.GetRawAsync($"api/Invoice/{currentUserId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<List<InvoiceDto>>();
+                if (data != null)
+                {
+                    // 🚀 Tampilkan langsung data dari backend, tanpa grouping ulang
+                    Invoices = data
+                        .Select((d, i) => new InvoiceDto
+                        {
+                            Index = i + 1,
+                            NoInvoice = d.NoInvoice,
+                            TanggalBeli = d.TanggalBeli,
+                            JumlahKursus = d.JumlahKursus,
+                            TotalHarga = d.TotalHarga
+                        })
+                        .OrderBy(x => x.TanggalBeli)
+                        .ToList();
+                }
+            }
+            else
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Gagal memuat invoice: {msg}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Terjadi kesalahan: {ex.Message}");
+        }
+    }
+
+    public class InvoiceDto
+    {
+        public int Index { get; set; }
+        public string? NoInvoice { get; set; }
+        public DateTime TanggalBeli { get; set; }
+        public int JumlahKursus { get; set; }
+        public decimal TotalHarga { get; set; }
+    }
+}
+
+<style>
+    .invoice-text:hover{
+        cursor: pointer;
+    }
+    .beranda-text:hover{
+        cursor: pointer;
+        color: #5D5FEF;
+    }
+    .custom-invoice-table thead {
+        background-color: #F2C94C !important;
+    }
+
+    .custom-invoice-table thead th {
+        color: black;
+        font-weight: bold;
+    }
+    .custom-invoice-table .even-row {
+        background-color: #F2C94C33 !important;
+    }
+    .custom-invoice-table .odd-row {
+        background-color: white !important;
+    }
+</style>

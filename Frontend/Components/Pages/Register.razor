@@ -1,0 +1,144 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using Frontend.DTOs
+@using Frontend.Models
+@using Frontend.Services
+@using Frontend.Interface
+@layout Layout.MainLayout
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IAuthClientService AuthClientService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mx-auto" Style="margin-top:6rem; margin-bottom:3rem;">
+    <MudText Typo="Typo.h5" Class="mb-2">Selamat Datang Musiker!</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-6">Yuk daftar terlebih dahulu akun kamu</MudText>
+
+    <EditForm Model="@registerModel" OnValidSubmit="@HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <MudStack Spacing="2">
+
+            <!-- Full Name -->
+            <MudTextField @bind-Value="registerModel.NamaLengkap" Placeholder="Masukan Nama Lengkap"
+                Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => registerModel.NamaLengkap)"
+                Required="true" />
+
+            <!-- Email -->
+            <MudTextField @bind-Value="registerModel.Email" Placeholder="Masukan Email" Variant="Variant.Outlined"
+                Margin="Margin.Dense" Required="true" Validation="@((string? value) => ValidateEmail(value))" />
+
+            <!-- Password -->
+            <MudTextField @bind-Value="registerModel.Password" Placeholder="Masukan Password" Variant="Variant.Outlined"
+                InputType="InputType.Password" Margin="Margin.Dense" Required="true" />
+
+            <!-- Confirm Password -->
+            <MudTextField @bind-Value="registerModel.ConfirmPassword" Placeholder="Konfirmasi Password"
+                Variant="Variant.Outlined" InputType="InputType.Password" Margin="Margin.Dense" Required="true"
+                Validation="@((string? value) => ValidateConfirmPassword(value))" />
+
+            <!-- Submit Button + Login Link -->
+            <MudGrid Class="mt-4">
+
+                <!-- ================= DESKTOP (md ke atas) ================= -->
+                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <MudItem xs="4">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Secondary"
+                            Style="padding:0.7rem 3.7rem; font-size:0.75rem;" Class="rounded-lg">Daftar</MudButton>
+                    </MudItem>
+
+                    <MudItem xs="6" Class="d-flex justify-center align-center">
+                        <MudText>
+                            Sudah punya akun?
+                            <MudLink Href="/login" Color="Color.Info" Class="mud-link-hover">
+                                Login disini
+                            </MudLink>
+                        </MudText>
+                    </MudItem>
+                </MudHidden>
+                <!-- ================= MOBILE (xs & sm) ================= -->
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem xs="12" class="d-flex justify-center">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Secondary"
+                                Style="padding:0.7rem 3.7rem; font-size:0.75rem;" Class="rounded-lg">Daftar</MudButton>
+                        </MudItem>
+
+                        <MudItem xs="12" class="d-flex justify-center mt-2">
+                            <MudText Align="Align.Center">
+                                Sudah punya akun?
+                                <MudLink Href="/login" Color="Color.Info" Class="mud-link-hover">
+                                    Login disini
+                                </MudLink>
+                            </MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudHidden>
+
+            </MudGrid>
+
+        </MudStack>
+    </EditForm>
+</MudContainer>
+
+@code {
+    private RegisterModel registerModel = new();
+
+
+    private async Task HandleValidSubmit()
+    {
+        var requestDto = new RegisterRequestDto
+        {
+            NamaLengkap = registerModel.NamaLengkap,
+            Email = registerModel.Email,
+            Password = registerModel.Password,
+            Role = "User"
+        };
+
+        try
+        {
+            bool success = await AuthClientService.Register(requestDto);
+            if (success)
+            {
+                Snackbar.Add("PENDAFTARAN BERHASIL..!");
+
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                Snackbar.Add("PENDAFTARAN GAGAL..!");
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("KONEKSI KE SERVER GAGAL..! TRY AGAIN", Severity.Error);
+        }
+        finally
+        {
+            registerModel = new RegisterModel();
+        }
+    }
+
+    private string? ValidateEmail(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Email belum terisi";
+
+        if (!value.Contains("@") || !value.Contains("."))
+            return "Email harus berisi '@' dan '.'";
+
+        return null; 
+    }
+    private string? ValidateConfirmPassword(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Konfirmasi password wajib diisi";
+
+        if (value != registerModel.Password)
+            return "Password dan konfirmasi password harus sama";
+
+        return null; 
+    }
+
+
+
+}

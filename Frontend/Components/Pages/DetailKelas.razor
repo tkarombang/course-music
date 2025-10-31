@@ -1,0 +1,833 @@
+@page "/detailkelas/{categoryName}/{courseName}"
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@using System.Threading
+@using Frontend.Services
+@using Cart.Models
+@using Frontend.DTOs
+@using System.Threading.Tasks
+@* @inject HttpClient Http *@
+@inject ISnackbar Snackbar
+@inject CartService CartService
+@inject NavigationManager Navigation
+@inject ClientApiService ApiService
+
+<PageTitle>Detail Kelas</PageTitle>
+
+    <MudContainer Class="d-flex flex-column justify-center align-center align-content-center mb-10" MaxWidth="MaxWidth.ExtraLarge">
+
+      <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        @if (selectedCourse == null)
+        {
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        }
+        else
+        {
+          <MudContainer Class="d-flex flex-column align-start justify-start mb-10" MaxWidth="MaxWidth.ExtraLarge">
+            <MudCard Class="mt-7 border-none" Elevation="0">
+                <div class="card-up">
+                    <!-- Gambar Kelas -->
+                    <MudImage
+                        class="image-full rounded-lg mr-10"
+                        Src="@($"http://localhost:5058/img/list_kelas/{selectedCourse.ImageCourse}")"
+                        Width="400"
+                        Height="266"
+                        Alt="@selectedCourse.NamaCourse"
+                        Elevation="0" />
+
+                    <!-- Konten Deskripsi -->
+                    <MudCardContent>
+                        <MudText Class="mb-6" Typo="Typo.caption" Style="color: #828282;">@categoryName</MudText>
+                        <MudText Class="mb-6" Typo="Typo.body2" Style="font-weight:600; font-size: 18px">@selectedCourse.NamaCourse</MudText>
+                        <MudText Typo="Typo.body2" Class="text-idr mb-5">IDR @selectedCourse.Harga.ToString("N0")</MudText>
+
+                        <!-- Autocomplete (diperlebar) -->
+                        <MudGrid Class="autocomplete-wrapper">
+                            <MudItem xs="12">
+                                <MudAutocomplete 
+                                    T="string" 
+                                    Label="Pilih Jadwal Kelas"
+                                    Variant="Variant.Outlined"
+                                    @bind-Value="value1" 
+                                    SearchFunc="@Search1"
+                                    ResetValueOnEmptyText="@resetValueOnEmptyText"
+                                    CoerceText="@coerceText" 
+                                    CoerceValue="@coerceValue" 
+                                    SelectValueOnTab="@selectedOnTab"
+                                    Style="width: 250px" /> @* lebar ditambah *@
+                            </MudItem>
+                        </MudGrid>
+
+                        <!-- Tombol -->
+                        <div class="Button-mid">
+                            <MudButton
+                                class="mt-15 mr-4" 
+                                Variant="Variant.Outlined" 
+                                OnClick="AddToCart"
+                                Color="Color.Secondary">Masukkan Keranjang</MudButton>
+
+                            <MudButton 
+                                class="mt-15" 
+                                Variant="Variant.Filled" 
+                                Color="Color.Secondary"
+                                OnClick="@ToggleOpen">Beli Sekarang</MudButton>
+                        </div>
+                    </MudCardContent>
+                </div>
+            </MudCard>
+            @if (_open)
+            {
+                <div class="overlay"></div>
+                <MudPopover Open="@_open" Fixed="true" Class="popup-view px-4 pt-4" Style="width:374px; height:550px;">
+                    <div class="d-flex flex-column">
+                        <MudText Class="mb-4" Typo="Typo.subtitle1" Align="Align.Center">Pilih Metode Pembayaran</MudText>
+
+                        <MudStack Spacing="0">
+                            @if (PaymentMethods == null)
+                            {
+                                <MudText Class="ml-2 mb-2">Memuat metode pembayaran...</MudText>
+                            }
+                            else if (!PaymentMethods.Any())
+                            {
+                                <MudText Color="Color.Warning" Class="ml-2 mb-2">Tidak ada metode pembayaran tersedia.</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var m in PaymentMethods)
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center"
+                                            Class="@GetPaymentClass(m.Name_Methode)"
+                                            Style="cursor:pointer; padding:8px; border-radius:8px;"
+                                            @onclick="@(() => SelectPayment(m.Name_Methode))">
+                                        <MudImage Style="width:40px; height:40px; object-fit:contain;"
+                                                Src="@($"http://localhost:5058{m.Logo_Methode}")"
+                                                Alt="@m.Name_Methode" />
+                                        <MudText Typo="Typo.body1" Class="ml-2">@m.Name_Methode</MudText>
+                                        @if (_selectedPayment == m.Name_Methode)
+                                        {
+                                            <MudSpacer />
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" />
+                                        }
+                                    </MudStack>
+                                }
+                            }
+                        </MudStack>
+
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                            <MudButton Variant="Variant.Outlined" OnClick="@ToggleOpen"
+                                    Style="width: 155px; height: 48px;"
+                                    Color="Color.Secondary">
+                                Close
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" OnClick="@ConfirmPayment"
+                                    Style="width: 155px; height: 48px"
+                                    Color="Color.Secondary"
+                                    Disabled="@string.IsNullOrEmpty(_selectedPayment)">
+                                Bayar
+                            </MudButton>
+                        </MudStack>
+                    </div>
+                </MudPopover>
+            }
+
+
+            <MudCardContent>
+                      <MudText Typo="Typo.h5" class="mb-4" style="font-weight: semibold; color: black;">Deskripsi</MudText>
+                      <MudText Typo="Typo.body2" class="text-drum" Style="text-align: justify;">
+                            @selectedCourse?.Deskripsi
+                      </MudText>
+                </MudCardContent>
+          </MudContainer>
+
+          @if (categoryData == null)
+            {
+                <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+            }
+          else {
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mudtext-title mt-18">Kelas Yang Tersedia</MudText>
+            
+            <div class="card-wrapper">
+                @foreach (var course in categoryData.Courses!
+                    .Where(c => !string.Equals(c.NamaCourse, selectedCourse?.NamaCourse, StringComparison.OrdinalIgnoreCase)))
+                {
+                    <MudCard Class="rounded-t-xl card-item">
+                        <MudCardMedia Image="@($"http://localhost:5058/img/list_kelas/{course.ImageCourse}")"
+                                      Height="233"
+                                      Width="350"
+                                      Class="roundImg size-mobile-img" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.caption" Style="color: #828282;">@categoryData.NameCategory</MudText>
+                            <MudButton
+                                Variant="Variant.Text"
+                                Color="Color.Inherit"
+                                Class="clickable-text text-left-button"
+                                Style="text-decoration:none;"
+                                OnClick="@(() => GoToDetail(course, categoryData.NameCategory!))">
+                                <MudText Typo="Typo.body2" Style="width: 300px"><b>@course.NamaCourse</b></MudText>
+                            </MudButton>
+                        </MudCardContent>
+
+                        <MudCardHeader>
+                            <MudText Typo="Typo.body2" Class="text-idr">
+                                IDR @course.Harga.ToString("N0")
+                            </MudText>
+                        </MudCardHeader>
+                    </MudCard>
+                }
+            </div>
+
+            @if (categoryData.Courses!.Count(c => !string.Equals(c.NamaCourse, selectedCourse?.NamaCourse, StringComparison.OrdinalIgnoreCase)) == 0)
+              {
+                  <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #828282; margin-top: 24px;">
+                      Tidak ada kelas lain dalam kategori ini.
+                  </MudText>
+              }
+          }
+        }
+      </MudHidden>
+    
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+     @if (selectedCourse == null)
+        {
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudCard Class="mt-7 border-none" Elevation="0">
+            <div class="card-up">
+            <MudGrid Justify="Justify.Center">
+              <MudImage
+                  class="image-full rounded-lg mt-8 ml-7"
+                  Src="@($"http://localhost:5058/img/list_kelas/{selectedCourse.ImageCourse}")"
+                  Width="350"
+                  Height="233"
+                  Alt="@selectedCourse.NamaCourse"
+                  Elevation="0" />
+            </MudGrid>
+              
+                <MudCardContent >
+                    <MudText Class="mb-6" Typo="Typo.caption" Style="color: #828282;">@categoryName</MudText>
+                    <MudText Class="mb-6" Typo="Typo.body2" Style="font-weight:600; font-size: 18px">@selectedCourse.NamaCourse</MudText>
+                    <MudText Typo="Typo.body2" Class="text-idr mb-5">IDR @selectedCourse.Harga.ToString("N0")</MudText>
+
+                  <MudGrid class="autocomplete-wrapper">
+                      <MudItem xs="12" sm="6" md="4">
+                          <MudAutocomplete 
+                              T="string" 
+                              Label="Pilih Jadwal Kelas"
+                              Variant="Variant.Outlined"
+                              @bind-Value="value1" 
+                              SearchFunc="@Search1"
+                              ResetValueOnEmptyText="@resetValueOnEmptyText"
+                              CoerceText="@coerceText" 
+                              CoerceValue="@coerceValue" 
+                              SelectValueOnTab="@selectedOnTab" />
+                      </MudItem>
+                  </MudGrid>
+
+              <div class="Button-mid-small">
+                  <MudButton
+                      Class="mt-15 mr-4" 
+                      Variant="Variant.Outlined" 
+                      OnClick="AddToCart"
+                      Style="height: 50px;"
+                      Color="Color.Secondary">Masukkan Keranjang</MudButton>
+                  
+                  <MudButton
+                      class="mt-15" 
+                      Variant="Variant.Filled" 
+                      Style="height: 50px;"
+                      Color="Color.Secondary"
+                      OnClick="@ToggleOpen">Beli Sekarang</MudButton>
+              </div>    
+            </MudCardContent>
+          </div>
+
+          @if (_open)
+            {
+                <div class="overlay"></div>
+                <MudPopover Open="@_open" Fixed="true" Class="popup-view-mobile px-4 pt-4" Style="width:374px; height:550px;">
+                    <div class="d-flex flex-column">
+                        <MudText Class="mb-4" Typo="Typo.subtitle1" Align="Align.Center">Pilih Metode Pembayaran</MudText>
+
+                        <MudStack Spacing="0">
+                            @if (PaymentMethods == null)
+                            {
+                                <MudText Class="ml-2 mb-2">Memuat metode pembayaran...</MudText>
+                            }
+                            else if (!PaymentMethods.Any())
+                            {
+                                <MudText Color="Color.Warning" Class="ml-2 mb-2">Tidak ada metode pembayaran tersedia.</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var m in PaymentMethods)
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center"
+                                            Class="@GetPaymentClass(m.Name_Methode)"
+                                            Style="cursor:pointer; padding:8px; border-radius:8px;"
+                                            @onclick="@(() => SelectPayment(m.Name_Methode))">
+                                        <MudImage Style="width:40px; height:40px; object-fit:contain;"
+                                                Src="@($"http://localhost:5058{m.Logo_Methode}")"
+                                                Alt="@m.Name_Methode" />
+                                        <MudText Typo="Typo.body1" Class="ml-2">@m.Name_Methode</MudText>
+                                        @if (_selectedPayment == m.Name_Methode)
+                                        {
+                                            <MudSpacer />
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" />
+                                        }
+                                    </MudStack>
+                                }
+                            }
+                        </MudStack>
+
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                            <MudButton Variant="Variant.Outlined" OnClick="@ToggleOpen"
+                                    Style="width: 155px; height: 48px;"
+                                    Color="Color.Secondary">
+                                Close
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" OnClick="@ConfirmPayment"
+                                    Style="width: 155px; height: 48px"
+                                    Color="Color.Secondary"
+                                    Disabled="@string.IsNullOrEmpty(_selectedPayment)">
+                                Bayar
+                            </MudButton>
+                        </MudStack>
+                    </div>
+                </MudPopover>
+            }
+        
+
+          <MudCardContent>
+              <MudText 
+                Typo="Typo.h5" 
+                class="mb-4" 
+                style="font-weight: semibold; color: black; ">Deskripsi</MudText>
+              
+              <MudText Typo="Typo.body2" class="text-drum" Style="text-align: justify;">
+                    @selectedCourse?.Deskripsi
+              </MudText>
+            </MudCardContent>
+          </MudCard>
+          
+          @if (categoryData == null)
+          {
+              <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+          }
+          else
+          {
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="mudtext-title mt-18">Kelas Yang Tersedia</MudText>
+            <div class="card-wrapper">
+              @foreach (var course in categoryData.Courses!
+                    .Where(c => !string.Equals(c.NamaCourse, selectedCourse?.NamaCourse, StringComparison.OrdinalIgnoreCase)))
+            {
+                <MudItem class="card-wrapper">
+                    <MudCard Class="rounded-t-xl card-item">
+                      <MudCardMedia Image="@($"http://localhost:5058/img/list_kelas/{course.ImageCourse}")" Height="233" Width="350" Class="roundImg size-mobile-img" />
+                      <MudCardContent>
+                        <MudText Typo="Typo.caption" Style="color: #828282;">@categoryData.NameCategory</MudText>
+                        <MudButton
+                          Variant="Variant.Text"
+                          Color="Color.Inherit"
+                          Class="clickable-text text-left-button"
+                          Style="text-decoration:none;"
+                          OnClick="@(() => GoToDetail(course, categoryData.NameCategory!))">
+                            <MudText
+                              Typo="Typo.body2"
+                              Class="text-class"
+                              >
+                                <b>@course.NamaCourse</b>
+                            </MudText>
+                        </MudButton>
+                      </MudCardContent>
+                      <MudCardHeader>
+                        <MudText Typo="Typo.body2" Class="text-idr">IDR @course.Harga.ToString("N0")</MudText>
+                      </MudCardHeader>
+                    </MudCard>
+                </MudItem>
+            }
+            </div>
+
+            @if (categoryData.Courses!.Count(c => !string.Equals(c.NamaCourse, selectedCourse?.NamaCourse, StringComparison.OrdinalIgnoreCase)) == 0)
+              {
+                  <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #828282; margin-top: 24px;">
+                      Tidak ada kelas lain dalam kategori ini.
+                  </MudText>
+              }
+          }
+        
+        }
+    </MudHidden>
+        
+        
+    
+<MudDivider class="mx-10"
+    style="color: black">
+</MudDivider>
+
+</MudContainer>
+
+@code {
+    private bool resetValueOnEmptyText = true;
+    private bool coerceText = true;
+    private bool coerceValue = true;
+    private bool selectedOnTab = true;
+    private string? value1;
+    private string[] jadwalTanggal = Array.Empty<string>();
+
+    [Parameter] public string categoryName { get; set; } = string.Empty;
+    [Parameter] public string courseName { get; set; } = string.Empty;
+
+    private CategoryWithCoursesDto? categoryData;
+    private CourseDto? selectedCourse;
+    private bool _open; // untuk toggle popover
+    private string? _selectedPayment;
+    private List<PaymentMethodLocal>? PaymentMethods;
+
+    private class PaymentMethodLocal
+    {
+        public int Id { get; set; }
+        public string Name_Methode { get; set; } = string.Empty;
+        public string Logo_Methode { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+    }
+
+    private void ToggleOpen() => _open = !_open;
+    private void SelectPayment(string method) => _selectedPayment = method;
+
+    private string GetPaymentClass(string name)
+    {
+        var extra = _selectedPayment == name ? "payment-item selected" : "payment-item";
+        return extra;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPaymentMethods();
+    }
+
+    private async Task LoadPaymentMethods()
+    {
+        try
+        {
+            var data = await ApiService.GetAsync<List<PaymentMethodLocal>>("api/PaymentMethod");
+            if (data != null && data.Any())
+            {
+                @* var data = await response.Content.ReadFromJsonAsync<List<PaymentMethodLocal>>(); *@
+                PaymentMethods = data?.Where(p => p.Status.Equals("Active", StringComparison.OrdinalIgnoreCase)).ToList()
+                                 ?? new List<PaymentMethodLocal>();
+            }
+            else
+            {
+                Snackbar.Add("Gagal memuat metode pembayaran.", Severity.Error);
+                PaymentMethods = new List<PaymentMethodLocal>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+            PaymentMethods = new List<PaymentMethodLocal>();
+        }
+    }
+
+    private async Task ConfirmPayment()
+{
+    if (selectedCourse == null)
+    {
+        Snackbar.Add("Kelas tidak ditemukan.", Severity.Error);
+        return;
+    }
+
+    if (string.IsNullOrWhiteSpace(value1))
+    {
+        Snackbar.Add("Silakan pilih jadwal kelas terlebih dahulu.", Severity.Warning);
+        return;
+    }
+
+    if (string.IsNullOrEmpty(_selectedPayment))
+    {
+        Snackbar.Add("Silakan pilih metode pembayaran terlebih dahulu.", Severity.Warning);
+        return;
+    }
+
+    // Parse tanggal jadwal
+    if (!TryParseIndonesianDate(value1!, out var jadwalDate))
+    {
+        Snackbar.Add("Format jadwal tidak valid.", Severity.Error);
+        return;
+    }
+
+    try
+    {
+        int? currentUserId = await ApiService.GetCurrentUserId(); // sementara hardcode user ID
+
+        var existingCheckout = await ApiService.GetCheckoutByUserAsync(currentUserId.Value);
+        if (existingCheckout != null && existingCheckout.Any(c => c.Jadwal.Date == jadwalDate.Date))
+        {
+            Snackbar.Add("Jadwal sudah dipilih, silakan pilih tanggal lain.", Severity.Warning);
+            return;
+        }
+
+        // 1️⃣ Simpan data ke API Checkout
+        var checkoutDto = new
+        {
+            IdUser = currentUserId,
+            IdCourse = selectedCourse.IdCourse,
+            Jadwal = jadwalDate
+        };
+
+        @* var checkoutResponse = await Http.PostAsJsonAsync("api/Checkout", checkoutDto); *@
+        var checkoutResponse = await ApiService.PostCheckoutAsync( checkoutDto);
+        if (!checkoutResponse.IsSuccessStatusCode)
+        {
+            var errorText = await checkoutResponse.Content.ReadAsStringAsync();
+            Snackbar.Add($"Sudah memiliki Course ini", Severity.Error);
+            return;
+        }
+
+        // 2️⃣ Ambil metode pembayaran terpilih
+        var selectedMethod = PaymentMethods?.FirstOrDefault(p => p.Name_Methode == _selectedPayment);
+        if (selectedMethod == null)
+        {
+            Snackbar.Add("Metode pembayaran tidak ditemukan.", Severity.Error);
+            return;
+        }
+
+        // 3️⃣ Simpan ke API Payment
+        decimal totalAmount = selectedCourse?.Harga ?? 0;
+
+        var paymentDto = new
+        {
+            IdUser = currentUserId,
+            IdPaymentMethod = selectedMethod.Id,
+            IdCourse = selectedCourse!.IdCourse,
+            Jadwal = jadwalDate,
+            Status = "Paid",
+            Amount = totalAmount
+        };
+
+        @* var paymentResponse = await Http.PostAsJsonAsync("api/Payment", paymentDto); *@
+        var paymentResponse = await ApiService.PostPaymentAsync( paymentDto);
+        if (paymentResponse.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Pembayaran berhasil disimpan!", Severity.Success);
+            _open = false;
+
+            // Opsional: arahkan ke halaman sukses
+            Navigation.NavigateTo("/purchaseberhasil");
+        }
+        else
+        {
+            var errorMsg = await paymentResponse.Content.ReadAsStringAsync();
+            Snackbar.Add($"Gagal menyimpan pembayaran: {errorMsg}", Severity.Error);
+        }
+    }
+    catch (Exception ex)
+    {
+        Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+        _open = false;
+    }
+}
+
+
+    private void GoToDetail(CourseDto course, string categoryName)
+    {
+        var encodedName = Uri.EscapeDataString(course.NamaCourse);
+        Navigation.NavigateTo($"/detailkelas/{categoryName}/{encodedName}", forceLoad: false);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            @* categoryData = await Http.GetFromJsonAsync<CategoryWithCoursesDto>($"api/category/{categoryName}"); *@
+            categoryData = await ApiService.GetAsync<CategoryWithCoursesDto>($"api/category/{categoryName}");
+
+            if (categoryData != null)
+            {
+                selectedCourse = categoryData.Courses?
+                    .FirstOrDefault(c => string.Equals(c.NamaCourse, courseName, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading course: {ex.Message}");
+        }
+
+        // Generate 30 hari jadwal ke depan
+        if (jadwalTanggal.Length == 0)
+        {
+            jadwalTanggal = Enumerable.Range(0, 30)
+                .Select(i => DateTime.Today.AddDays(i).ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID")))
+                .ToArray();
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<string>> Search1(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+        if (string.IsNullOrEmpty(value))
+            return jadwalTanggal;
+
+        return jadwalTanggal.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private bool TryParseIndonesianDate(string input, out DateTime result)
+    {
+        result = default;
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+
+        var culture = new System.Globalization.CultureInfo("id-ID");
+
+        // format-format yang mungkin muncul
+        var formats = new[]
+        {
+            "dddd, dd MMMM yyyy", // e.g. "Jumat, 24 Oktober 2025"
+            "dd MMMM yyyy",       // e.g. "24 Oktober 2025"
+            "d MMMM yyyy",        // e.g. "4 Oktober 2025"
+            "yyyy-MM-dd",         // ISO-like if muncul
+            "dd-MM-yyyy"
+        };
+
+        // 1) coba ParseExact dengan formats (case-insensitive)
+        if (DateTime.TryParseExact(input, formats, culture,
+                System.Globalization.DateTimeStyles.None, out result))
+            return true;
+
+        // 2) coba DateTime.TryParse (lebih fleksibel)
+        if (DateTime.TryParse(input, culture, System.Globalization.DateTimeStyles.None, out result))
+            return true;
+
+        // 3) jika masih gagal, buang bagian sebelum koma (nama hari) lalu coba lagi
+        var idx = input.IndexOf(',');
+        if (idx >= 0 && idx + 1 < input.Length)
+        {
+            var afterComma = input.Substring(idx + 1).Trim();
+            if (DateTime.TryParseExact(afterComma, formats, culture,
+                    System.Globalization.DateTimeStyles.None, out result))
+                return true;
+
+            if (DateTime.TryParse(afterComma, culture, System.Globalization.DateTimeStyles.None, out result))
+                return true;
+        }
+
+        return false;
+    }
+
+    private async Task AddToCart()
+    {
+        if (selectedCourse == null)
+        {
+            Snackbar.Add("Kelas tidak ditemukan!", Severity.Error);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value1))
+        {
+            Snackbar.Add("Silakan pilih jadwal kelas terlebih dahulu.", Severity.Warning);
+            return;
+        }
+
+        // Coba parse tanggal menggunakan helper
+        if (!TryParseIndonesianDate(value1!, out var jadwalDate))
+        {
+            Snackbar.Add("Format jadwal tidak valid. Gunakan format seperti 'Jumat, 24 Oktober 2025' atau '24 Oktober 2025'.", Severity.Error);
+            return;
+        }
+
+        // Cek apakah sudah ada course lain di tanggal yang sama
+        bool adaConflict = CartService.GetCart()
+            .Any(c => c.Jadwal.Date == jadwalDate.Date);
+
+        if (adaConflict)
+        {
+            Snackbar.Add("User tidak bisa memilih course di hari yang sama.", Severity.Warning);
+            return; // batalkan tambah ke cart
+        }
+
+
+        // Jika Anda mau menyimpan ke database Checkout langsung saat klik "Masukkan Keranjang":
+        try
+        {
+            // TODO: ganti dengan user id dari autentikasi yang sebenarnya
+            int? currentUserId = await ApiService.GetCurrentUserId();
+
+            var checkoutDto = new
+            {
+                IdUser = currentUserId,
+                IdCourse = selectedCourse.IdCourse,
+                Jadwal = jadwalDate // ini DateTime, HttpClient.PostAsJsonAsync akan serialisasi jadi ISO-8601
+            };
+
+            var response = await ApiService.PostCheckoutAsync( checkoutDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Opsional: juga tambahkan ke CartService jika Anda masih ingin user melihat di keranjang lokal
+                var item = new CartItem
+                {
+                    IdCourse = selectedCourse.IdCourse,
+                    ClassName = selectedCourse.NamaCourse,
+                    Price = selectedCourse.Harga,
+                    Quantity = 1,
+                    IsSelected = false,
+                    ImageUrl = selectedCourse.ImageCourse,
+                    Jadwal = jadwalDate
+                };
+                CartService.AddToCart(item);
+
+                Snackbar.Add($"Kelas '{selectedCourse.NamaCourse}' berhasil dimasukkan ke keranjang.", Severity.Success);
+                // Navigation.NavigateTo("/checkout"); // opsional
+            }
+            else
+            {
+                var errorText = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Gagal menambahkan ke checkout: {response.StatusCode} - {errorText}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task BuyNow()
+    {
+        await AddToCart(); // tambahkan dulu ke keranjang
+        Navigation.NavigateTo("/checkout");
+    }
+
+    @* private class CheckoutDto
+    {
+        public int Id { get; set; }
+        public int IdUser { get; set; }
+        public int IdCourse { get; set; }
+        public DateTime Jadwal { get; set; }
+    } *@
+}
+
+
+<style>
+   .card-up{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        background-color: transparent;
+   }
+
+    .autocomplete-wrapper{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: flex-start;
+    }
+    .card-below-image{
+        width: 100%; /* bisa disesuaikan */
+        height: 100%;
+        justify-content: center;
+        padding: 32px;
+        gap: 16px;
+        outline: 0vh;
+    }
+    .text-drum{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 400;
+        size: 16px;
+        color: black;
+    }
+    .card-lower{
+        width: 100%; /* bisa disesuaikan */
+        height: 100%;
+        justify-content: center;
+        padding: 32px;
+        gap: 16px;
+        outline: 0vh;
+    }
+    .middle-text{
+        font-family: 'Inter';
+        font-weight: semibold;
+        font-size: 24px;
+        color: #5D5FEF;
+        text-align: center;
+    }
+    .Button-mid-small{
+      display: flex;
+      justify-content: center;
+    }
+    .text-left-button {
+    text-align: left;
+    padding-left: 0;
+    }
+    .clickable-text:hover {
+      text-decoration: underline;
+      cursor: pointer;
+      color: #5D5FEF;
+      background-color: transparent;
+    }
+    .overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    .popup-view {
+        position: fixed !important;
+        top: 100px !important;
+        left: 550px !important;
+        z-index: 1500;
+    }
+
+    .popup-view-mobile{
+        position: fixed !important;
+        top: 100px !important;
+        left: 40px !important;
+        z-index: 1500;
+    }
+    .payment-item.selected {
+        background-color: #f2f2f2;
+        border: 2px solid #6c63ff;
+    }
+
+
+    @* PUNYA AZWAR *@
+    .mudtext-title {
+    color: #5D5FEF;
+    margin-top: 50px;
+  }
+
+  .roundImg {
+    border-radius: 1rem;
+  }
+
+  .text-idr {
+    color: #5D5FEF;
+    font-weight: 600;
+  }
+
+  .card-compact{
+    max-width: 350px;
+  }
+
+  .card-wrapper{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .card-item{
+    flex-basis: calc(33.333% - 16px);
+    max-width: 350px;
+    flex-grow: 1;
+  }
+  @* END PUNYA AZWAR *@
+</style>

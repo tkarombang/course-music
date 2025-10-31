@@ -1,0 +1,65 @@
+@using Microsoft.Win32.SafeHandles
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="@MyCustomTheme" />
+<MudPopoverProvider @rendermode="InteractiveServer"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout class="d-flex flex-column">
+    <NavList/>
+    @* <NavMenu /> *@
+
+    <MudMainContent Class="flex-grow-1">
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-n17 pl-0 pr-0">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+
+    @* <FooterMenu /> *@
+</MudLayout>
+
+        
+    
+
+@code{
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#5D5FEF",
+            Secondary = "#5D5FEF",
+            Tertiary = Colors.Shades.Black,
+            AppbarBackground = "#F2C94C",
+            AppbarText = "#000000"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten1
+        },
+
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "260px",
+            DrawerWidthRight = "300px"
+        },
+
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Poppins","sans-serif" }
+            },
+            H6 = new H6Typography()
+            {
+                FontFamily = new[] { "Montserrat", "sans-serif" },
+                FontSize = "1.5rem",
+                FontWeight = "800",
+                LineHeight = "1.6",
+                TextTransform = "uppercase"
+            },
+        }
+    };
+
+    
+}

@@ -1,0 +1,273 @@
+@page "/listpage/{categoryName}"
+@* @inject HttpClient Http *@
+@using System.Net.Http.Json
+@using Frontend.Services
+@using Frontend.DTOs
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ClientApiService ApiService
+
+<PageTitle>ListPage</PageTitle>
+
+ <MudHidden Breakpoint="Breakpoint.SmAndDown">
+  <MudContainer Class="d-flex flex-column justify-center align-center align-content-center mb-10" MaxWidth="MaxWidth.ExtraLarge">
+
+    
+
+    
+    @* -- Ini untuk Area ListPage tengah sampai Footer -- *@
+
+   
+  @if (categoryData == null)
+{
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+}
+else
+{
+    <MudImage
+        style=" width: 1520px;object-fit: contain;display: block;"
+        Src="@($"http://localhost:5058/img/list_category/{categoryData.ImageBanner}")"
+        Alt="@categoryData?.NameCategory" 
+        Elevation="0" />
+        
+    <MudCardContent class="pa-8" style="width: 1420px">
+        <MudText Typo="Typo.h5" class="mb-4" style="font-weight: semibold; color: black">@categoryData.NameCategory Class</MudText>
+        <MudText Typo="Typo.subtitle2" class="text-drum" Style="text-align: justify;">
+            @if (!string.IsNullOrEmpty(categoryData.Deskripsi))
+            {
+                @categoryData.Deskripsi
+            }
+            else
+            {
+                <text>Tidak ada deskripsi untuk kategori ini.</text>
+            }
+        </MudText>
+    </MudCardContent>
+
+    <MudDivider  
+        Class="mx-10"
+        Style="background-color:black; height:2px; align-self:center;" />
+
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mud-py-6">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mudtext-title mt-18 mb-18">
+            Kelas yang tersedia
+        </MudText>
+
+        <div class="card-wrapper">
+            @foreach (var course in categoryData.Courses)
+            {
+                <MudCard Class="rounded-t-xl card-item">
+                    <MudCardMedia Image="@($"http://localhost:5058/img/list_kelas/{course.ImageCourse}")"
+                                  Height="233"
+                                  Width="350"
+                                  Class="roundImg size-mobile-img" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.caption" Style="color: #828282;">@categoryData.NameCategory</MudText>
+                        <MudButton
+                            Variant="Variant.Text"
+                            Color="Color.Inherit"
+                            Class="clickable-text text-left-button"
+                            Style="text-decoration:none;"
+                            OnClick="@(() => GoToDetail(course, categoryData.NameCategory))">
+                            <MudText Typo="Typo.body2" Style="width: 300px"><b>@course.NamaCourse</b></MudText>
+                        </MudButton>
+                    </MudCardContent>
+
+                    <MudCardHeader>
+                        <MudText Typo="Typo.body2" Class="text-idr">
+                            IDR @course.Harga.ToString("N0")
+                        </MudText>
+                    </MudCardHeader>
+                </MudCard>
+            }
+        </div>
+    </MudContainer>
+}
+</MudContainer>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+  <MudContainer Class="d-flex flex-column justify-center align-center align-content-center mb-10" MaxWidth="MaxWidth.ExtraLarge">
+    
+    @* -- Ini untuk Area ListPage tengah sampai Footer -- *@
+ @if (categoryData == null)
+{
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+}
+else
+{
+    <MudImage
+        style=" width: 100%;height: auto;object-fit: contain;display: block;"
+        Src="@($"http://localhost:5058/img/list_category/{categoryData.ImageBanner}")"
+        Alt="@categoryData?.NameCategory"  
+        Elevation="0" />
+
+    <MudCardContent>
+            <MudText Typo="Typo.h5" class="mb-4" style="font-weight: semibold; color: black">@categoryData.NameCategory Class</MudText>
+            <MudText Typo="Typo.body2" class="text-drum" Style="text-align: justify;">
+            @if (!string.IsNullOrEmpty(categoryData.Deskripsi))
+            {
+                @categoryData.Deskripsi
+            }
+            else
+            {
+                <text>Tidak ada deskripsi untuk kategori ini.</text>
+            }
+            </MudText>
+        </MudCardContent>
+    <MudDivider  
+        Class="mx-10"
+        Style="background-color:black; height:2px; align-self:center;" />
+
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mud-py-6">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mudtext-title mt-18 mb-18">
+            Kelas yang tersedia
+        </MudText>
+
+        <div class="card-wrapper">
+            @foreach (var course in categoryData.Courses)
+            {
+                <MudCard Class="rounded-t-xl card-item">
+                    <MudCardMedia Image="@($"http://localhost:5058/img/list_kelas/{course.ImageCourse}")"
+                                  Height="233"
+                                  Width="350"
+                                  Class="roundImg size-mobile-img" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.caption" Style="color: #828282;">@categoryData.NameCategory</MudText>
+                        <MudButton
+                            Variant="Variant.Text"
+                            Color="Color.Inherit"
+                            Class="clickable-text text-left-button"
+                            Style="text-decoration:none;"
+                            @onclick="@(() => GoToDetail(course, categoryData.NameCategory))">
+                            <MudText Typo="Typo.body2"><b>@course.NamaCourse</b></MudText>
+                        </MudButton>
+                    </MudCardContent>
+
+                    <MudCardHeader>
+                        <MudText Typo="Typo.body2" Class="text-idr">
+                            IDR @course.Harga.ToString("N0")
+                        </MudText>
+                    </MudCardHeader>
+                </MudCard>
+            }
+        </div>
+    </MudContainer>
+}
+</MudContainer>
+</MudHidden>
+ 
+
+<style>
+    .card-below-image{
+        width: 100%; /* bisa disesuaikan */
+        height: 100%;
+        justify-content: center;
+        padding: 32px;
+        gap: 16px;
+        outline: 0vh;
+    }
+    .text-drum{
+        font-family: 'Poppins', sans-serif;
+        font-weight: 400;
+        size: 16px;
+        color: black;
+    }
+    .card-lower{
+        width: 100%; /* bisa disesuaikan */
+        height: 100%;
+        justify-content: center;
+        padding: 32px;
+        gap: 16px;
+        outline: 0vh;
+    }
+    .middle-text{
+        font-family: 'Inter';
+        font-weight: semibold;
+        font-size: 24px;
+        color: #5D5FEF;
+        text-align: center;
+    }
+    .text-left-button {
+    text-align: left;
+    padding-left: 0;
+    }
+    .clickable-text:hover {
+      text-decoration: underline;
+      cursor: pointer;
+      color: #5D5FEF;
+      background-color: transparent;
+    }
+
+
+    @* PUNYA AZWAR *@
+    .mudtext-title {
+    color: #5D5FEF;
+  }
+
+  .roundImg {
+    border-radius: 1rem;
+  }
+
+  .text-idr {
+    color: #5D5FEF;
+    font-weight: 600;
+  }
+
+  .card-compact{
+    max-width: 350px;
+  }
+
+  .card-wrapper{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  .card-item{
+    flex-basis: calc(33.333% - 16px);
+    max-width: 350px;
+    flex-grow: 1;
+  }
+  @* END PUNYA AZWAR *@
+</style>
+
+@code {
+    [Parameter] public string categoryName { get; set; } = string.Empty;
+    private CategoryWithCoursesDto? categoryData;
+
+
+    private void GoToDetail(CourseDto course, string categoryName)
+    {
+        // Encode data agar bisa dikirim di URL
+        var encodedName = Uri.EscapeDataString(course.NamaCourse);
+        Navigation.NavigateTo($"/detailkelas/{categoryName}/{encodedName}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoryData();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Akan dipanggil ulang setiap kali {categoryName} berubah
+        await LoadCategoryData();
+    }
+
+    private async Task LoadCategoryData()
+    {
+        try
+        {
+            categoryData = await ApiService.GetAsync<CategoryWithCoursesDto>($"api/category/{categoryName}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+    }
+
+}

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Admin/Admin.csproj" />
+  <Project Path="Frontend/Frontend.csproj" />
+  <Project Path="Backend/Backend.csproj" />
+</Solution>

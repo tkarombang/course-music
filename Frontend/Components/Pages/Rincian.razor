@@ -1,0 +1,249 @@
+@page "/rincian/{NoInvoice}"
+@layout Layout.UserMenu
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@using System.Globalization
+@using Frontend.Services
+@* @inject HttpClient Http *@
+@inject IJSRuntime JS
+@inject ClientApiService ApiService
+
+<PageTitle>Rincian Invoice</PageTitle>
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudGrid Spacing="1" style="align-items= start; border: none;" class="pa-5">
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/landingpage"))">
+            Beranda >
+        </MudText>
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 ml-n8 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/invoice"))">
+            Invoice >
+        </MudText>
+        <MudText Typo="Typo.body2" class="pa-5 mt-3 ml-n8 invoice-text" style="color:#5D5FEF;">Rincian Invoice</MudText>
+    </MudGrid>
+
+    <MudPaper Class="pa-10 mt-n15"style="width: 100%; height: 90vh">
+        <MudGrid Spacing="1" style="align-items= start;" class="pa-5 ml-n5">
+            <MudText Typo="Typo.h5" Class="mb-9" style="font-weight: bold">Rincian Invoice</MudText>
+            <MudFlexBreak />
+            <MudText Typo="Typo.body1" Class="mb-2">No. Invoice: <b style="font-weight: 500;" class="ml-8">@InvoiceInfo.NoInvoice</b></MudText>
+            <MudFlexBreak />
+            <MudText Typo="Typo.body1" Class="mb-2">
+                Tanggal Beli: <b style="font-weight: 500;" class="ml-5">@InvoiceInfo.TanggalBeli.ToString("dd MMMM yyyy", new CultureInfo("id-ID"))</b>
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="6"></MudItem> <!-- Spacer kiri -->
+                <MudItem xs="6" style="text-align: right;">
+                    <MudText Typo="Typo.body1" Class="mr-n8 mb-n4" style="font-weight: 600;">
+                        Total Harga:
+                        <b style="color: black;">
+                            @($"IDR {InvoiceInfo.TotalHarga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")
+                        </b>
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudGrid>
+
+        <MudTable 
+            Items="@InvoiceDetails" 
+            Hover="true" 
+            Breakpoint="Breakpoint.Sm"
+            Class="custom-invoice-table"
+            RowClassFunc="@( (item, rowNumber) => (rowNumber + 1) % 2 == 0 ? "even-row" : null )">
+
+            <HeaderContent>
+                <MudTh style="text-align:center;">No</MudTh>
+                <MudTh style="text-align:center;">Nama Course</MudTh>
+                <MudTh style="text-align:center;">Kategori</MudTh>
+                <MudTh style="text-align:center;">Jadwal</MudTh>
+                <MudTh style="text-align:center;">Harga</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd style="text-align:center;">@context.Index</MudTd>
+                <MudTd style="text-align:center;">@context.NamaCourse</MudTd>
+                <MudTd style="text-align:center;">@context.Kategori</MudTd>
+                <MudTd style="text-align:center;">@DateTime.Parse(context.Jadwal).ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID"))</MudTd>
+                <MudTd style="text-align:center;">@($"IDR {context.Harga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudGrid Spacing="1" style="align-items= start; border: none;" class="pa-5">
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/landingpage"))">
+            Beranda >
+        </MudText>
+        <MudText Typo="Typo.body2"
+         class="pa-5 mt-3 ml-n8 beranda-text"
+         @onclick="@(() => Navigation.NavigateTo("/invoice"))">
+            Invoice >
+        </MudText>
+        <MudText Typo="Typo.body2" class="pa-5 mt-3 ml-n8 invoice-text" style="color:#5D5FEF;">Rincian Invoice</MudText>
+    </MudGrid>
+
+    <MudPaper Class="pa-10 mt-n15">
+        <MudGrid Spacing="1" style="align-items= start;" class="pa-5 ml-n5">
+            <MudText Typo="Typo.h5" Class="mb-9" style="font-weight: bold">Rincian Invoice</MudText>
+            <MudFlexBreak />
+            <MudText Typo="Typo.body1" Class="mb-2">No. Invoice: <b style="font-weight: 500;" class="ml-8">@InvoiceInfo.NoInvoice</b></MudText>
+            <MudFlexBreak />
+            <MudText Typo="Typo.body1" Class="mb-2">
+                Tanggal Beli: <b style="font-weight: 500;" class="ml-5">@InvoiceInfo.TanggalBeli.ToString("dd MMMM yyyy", new CultureInfo("id-ID"))</b>
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="6"></MudItem> <!-- Spacer kiri -->
+                <MudItem xs="6" style="text-align: right;">
+                    <MudText Typo="Typo.subtitle2" Class="mt-4 mr-n8 mb-n4" style="font-weight: 600;">
+                        Total Harga:
+                        <b style="color: black;">
+                            @($"IDR {InvoiceInfo.TotalHarga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")
+                        </b>
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudGrid>
+
+        <MudTable 
+            Items="@InvoiceDetails" 
+            Hover="true" 
+            Breakpoint="Breakpoint.Sm"
+            Class="custom-invoice-table"
+            RowClassFunc="@( (item, rowNumber) => (rowNumber + 1) % 2 == 0 ? "even-row" : null )">
+
+            <HeaderContent>
+                @* <MudTh style="text-align:center;">No</MudTh> *@
+                <MudTh style="text-align:center;">Nama Course</MudTh>
+                <MudTh style="text-align:center;">Kategori</MudTh>
+                <MudTh style="text-align:center;">Jadwal</MudTh>
+                <MudTh style="text-align:center;">Harga</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                @* <MudTd style="text-align:center;">@context.Index</MudTd> *@
+                <MudTd class="ml-n8">@context.NamaCourse</MudTd>
+                <MudTd style="text-align:center;">@context.Kategori</MudTd>
+                <MudTd style="text-align:center;">@DateTime.Parse(context.Jadwal).ToString("dddd, dd MMMM yyyy", new CultureInfo("id-ID"))</MudTd>
+                <MudTd style="text-align:center;">@($"IDR {context.Harga.ToString("N0", CultureInfo.GetCultureInfo("id-ID"))}")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudHidden>
+
+
+
+@code {
+    [Parameter]
+    public string? NoInvoice { get; set; }
+
+    private InvoiceInfoDto InvoiceInfo = new();
+    private List<InvoiceDetailDto> InvoiceDetails = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        int? currentUserId = await ApiService.GetCurrentUserId(); 
+    Console.WriteLine($"DEBUG Rincian -> currentUserId: {currentUserId}");
+    Console.WriteLine($"DEBUG Rincian -> NoInvoice Parameter: {NoInvoice}");
+        if (string.IsNullOrEmpty(NoInvoice))
+        {
+            Navigation.NavigateTo("/invoice");
+            return;
+        }
+
+        try
+        {
+            // Panggil API untuk ambil rincian invoice berdasarkan NoInvoice dan IdUser
+            var response = await ApiService.GetRawAsync($"api/Invoice/detail/{currentUserId}/{NoInvoice}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<InvoiceDetailResponse>();
+                if (result != null)
+                {
+                    InvoiceInfo = new InvoiceInfoDto
+                    {
+                        NoInvoice = result.NoInvoice,
+                        TanggalBeli = result.TanggalBeli,
+                        TotalHarga = result.TotalHarga
+                    };
+                    InvoiceDetails = result.DetailCourses;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Gagal memuat rincian invoice.", NoInvoice);
+                Navigation.NavigateTo("/invoice");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        Console.WriteLine($"DEBUG => API URL: api/Invoice/detail/{currentUserId}/{NoInvoice}");
+    }
+
+    public class InvoiceInfoDto
+    {
+        public string NoInvoice { get; set; } = string.Empty;
+        public DateTime TanggalBeli { get; set; }
+        public decimal TotalHarga { get; set; }
+    }
+
+    public class InvoiceDetailDto
+    {
+        public int Index { get; set; }
+        public string? NamaCourse { get; set; }
+        public string? Kategori { get; set; }
+        public string Jadwal { get; set; }
+        public decimal Harga { get; set; }
+    }
+
+    public class InvoiceDetailResponse
+    {
+        public string NoInvoice { get; set; } = string.Empty;
+        public DateTime TanggalBeli { get; set; }
+        public decimal TotalHarga { get; set; }
+        public List<InvoiceDetailDto> DetailCourses { get; set; } = new();
+    }
+}
+
+
+<style>
+    .invoice-text:hover {
+        cursor: pointer;
+    }
+    .beranda-text:hover {
+        cursor: pointer;
+        color: #5D5FEF;
+    }
+
+    .custom-invoice-table thead {
+        background-color: #F2C94C !important;
+    }
+
+    .custom-invoice-table thead th {
+        color: black;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .custom-invoice-table .even-row {
+        background-color: #F2C94C33 !important;
+    }
+
+    .custom-invoice-table td {
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+    }
+
+    .custom-invoice-table th {
+        font-family: "Poppins", sans-serif;
+    }
+</style>

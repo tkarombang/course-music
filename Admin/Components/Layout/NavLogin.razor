@@ -1,0 +1,193 @@
+@using Admin.Services
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IAdminAuthService AuthService
+@inject ISnackbar Snackbar
+
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+  <MudAppBar
+    Elevation="1"
+    Dense="@_dense"
+    style="border-bottom: 1px solid rgba(0,0,0,0.2); background-color:#226957;">
+    @* <MudIconButton 
+      Icon="@Icons.Material.Filled.Menu"
+      Color="Color.Inherit" OnClick="@(()=> ToggleDrawer(Anchor.Start))"/> *@
+    <MudText
+      class="pa-5"
+      Typo="Typo.h5">Music Admin
+    </MudText>
+</MudAppBar>
+
+<MudDrawer @bind-Open="@_open" Anchor="@_anchor" Elevation="1" Variant="@DrawerVariant.Temporary" OverlayAutoClose="@_overlayAutoClose">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Main Menu</MudText>
+    </MudDrawerHeader>
+    @* <MudNavMenu>
+        <MudNavLink 
+          Href="/home" Icon="@Icons.Material.Filled.Dashboard" 
+          Match="NavLinkMatch.All">Dashboard
+        </MudNavLink>
+        <MudNavLink Href="/usermanagement" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.All">User Management</MudNavLink>
+        <MudNavLink Href="/payment" Icon="@Icons.Material.Filled.CreditCard" Match="NavLinkMatch.All">Payment Method</MudNavLink>
+        <MudNavLink Href="/course" Icon="@Icons.Material.Filled.MenuBook" Match="NavLinkMatch.All">Course Manager</MudNavLink>
+        <MudNavLink Href="/category" Icon="@Icons.Material.Filled.Category" Match="NavLinkMatch.All">Category Manager</MudNavLink>
+        <MudDivider Style="border-bottom:1px solid rgba(0,0,0,0.2);" Class="my-3" />
+        <MudText Typo="Typo.subtitle2" Class="d-flex justify-center mt-2 mb-1 text-center">Setting</MudText>
+        <MudNavLink Icon="@Icons.Material.Filled.ExitToApp" OnClick="OnLogoutClicked">Logout</MudNavLink>
+      
+    </MudNavMenu> *@
+</MudDrawer>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+  <MudAppBar
+  Elevation="1"
+  Dense="@_dense"
+  style="border-bottom: 1px solid rgba(0,0,0,0.2); background-color:#226957;">
+  @* <MudIconButton 
+    Icon="@Icons.Material.Filled.Menu"
+    Color="Color.Inherit" OnClick="@(()=> ToggleDrawer(Anchor.Start))"/> *@
+    <MudText
+      Typo="Typo.h5">Music Admin
+    </MudText>
+</MudAppBar>
+
+<MudDrawer @bind-Open="@_open" Anchor="@_anchor" Elevation="1" Variant="@DrawerVariant.Temporary" OverlayAutoClose="@_overlayAutoClose">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Main Menu</MudText>
+    </MudDrawerHeader>
+    @* <MudNavMenu>
+        <MudNavLink 
+          Href="/" Icon="@Icons.Material.Filled.Dashboard" 
+          Match="NavLinkMatch.All">Dashboard
+        </MudNavLink>
+        <MudNavLink Href="/usermanagement" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.All">User Management</MudNavLink>
+        <MudNavLink Href="/payment" Icon="@Icons.Material.Filled.CreditCard" Match="NavLinkMatch.All">Payment Method</MudNavLink>
+        <MudNavLink Href="/course" Icon="@Icons.Material.Filled.MenuBook" Match="NavLinkMatch.All">Course Manager</MudNavLink>
+        <MudNavLink Href="/category" Icon="@Icons.Material.Filled.Category" Match="NavLinkMatch.All">Category Manager</MudNavLink>
+        <MudDivider Style="border-bottom:1px solid rgba(0,0,0,0.2);" Class="my-3" />
+        <MudText Typo="Typo.subtitle2" Class="d-flex justify-center mt-2 mb-1 text-center">Action Menu</MudText>
+        <MudNavLink Icon="@Icons.Material.Filled.ExitToApp" OnClick="OnLogoutClicked">Logout</MudNavLink>
+        
+    </MudNavMenu> *@
+</MudDrawer>
+</MudHidden>
+
+
+ @* <MudAppBar Elevation="1" Dense="@_dense" Style="border-bottom:1px solid rgba(0,0,0,0.2); background-color:#226957;">
+    <MudIconButton 
+      Icon="@Icons.Material.Filled.Menu"
+      Color="Color.Inherit" OnClick="@(()=> ToggleDrawer(Anchor.Start))"/>
+      <MudText Typo="Typo.h5">Admin App</MudText>
+  </MudAppBar>
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+  <MudDrawer 
+      @bind-Open="@_open" 
+        Anchor="@_anchor" 
+        Elevation="1" 
+        Variant="@DrawerVariant.Mini" 
+        OverlayAutoClose="@_overlayAutoClose">
+
+  <MudNavMenu Class="d-flex flex-column">
+    <MudText Typo="Typo.subtitle2" Class="d-flex justify-center p-4 mb-1 text-center">Main Menu</MudText>
+
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">Dashboard
+    </MudNavLink>
+    <MudNavLink Href="/usermanagement" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.All">User Management</MudNavLink>
+    <MudNavLink Href="/payment" Icon="@Icons.Material.Filled.CreditCard" Match="NavLinkMatch.All">Payment Method</MudNavLink>
+
+    <MudDivider Style="border-bottom:1px solid rgba(0,0,0,0.2);" Class="my-3" />
+
+    <MudText Typo="Typo.subtitle2" Class="d-flex justify-center mt-2 mb-1 text-center">Action Menu</MudText>
+    <MudNavLink Icon="@Icons.Material.Filled.ExitToApp" OnClick="OnLogoutClicked">Logout</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudDrawer 
+      @bind-Open="@_open" 
+        Anchor="@_anchor" 
+        Elevation="1" 
+        Variant="@DrawerVariant.Mini" 
+        OverlayAutoClose="@_overlayAutoClose">
+
+  <MudNavMenu Class="d-flex flex-column">
+    <MudText Typo="Typo.subtitle2" Class="d-flex justify-center p-4 mb-1 text-center">Main Menu</MudText>
+
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">Dashboard
+    </MudNavLink>
+    <MudNavLink Href="/usermanagement" Icon="@Icons.Material.Filled.People" Match="NavLinkMatch.All">User Management</MudNavLink>
+    <MudNavLink Href="/payment" Icon="@Icons.Material.Filled.CreditCard" Match="NavLinkMatch.All">Payment Method</MudNavLink>
+
+    <MudDivider Style="border-bottom:1px solid rgba(0,0,0,0.2);" Class="my-3" />
+
+    <MudText Typo="Typo.subtitle2" Class="d-flex justify-center mt-2 mb-1 text-center">Action Menu</MudText>
+    <MudNavLink Icon="@Icons.Material.Filled.ExitToApp" OnClick="OnLogoutClicked">Logout</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>
+</MudHidden> *@
+
+
+
+
+<style>
+a{
+  text-decoration: none;
+}
+</style>
+
+@code {
+  [Parameter]
+  public bool IsOpen { get; set; }
+
+  [Parameter]
+  public EventCallback<bool> IsOpenChanged { get; set; }
+
+  [Parameter]
+  public bool Dense { get; set; }
+
+  [Parameter]
+  public Breakpoint Breakpoint { get; set; }
+
+  [Parameter]
+  public DrawerClipMode ClipMode { get; set; }
+
+  private bool _dense => Dense;
+  private Breakpoint _breakpoint => Breakpoint;
+  private DrawerClipMode _clipMode => ClipMode;
+
+  private Anchor _anchor;
+  private bool _overlayAutoClose = true;
+
+
+  private bool _open
+  {
+    get => IsOpen;
+    set
+    {
+      if (IsOpen == value) return;
+      IsOpen = value;
+      IsOpenChanged.InvokeAsync(value);
+    }
+  }
+
+  private void ToggleDrawer(Anchor anchor)
+  {
+    _open = !_open;
+    _anchor = anchor;
+  }
+
+  private async Task OnLogoutClicked()
+  {
+    await AuthService.LogoutAsync();
+    Snackbar.Add("TERIMA KASIH", Severity.Success);
+    Console.WriteLine("Logout");
+
+    Navigation.NavigateTo("/login", forceLoad: true);
+  }
+}

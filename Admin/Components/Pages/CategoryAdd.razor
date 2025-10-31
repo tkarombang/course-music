@@ -1,0 +1,158 @@
+@using Admin.Models
+@using Admin.Services
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject AdminApiService ApiService
+
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudDialogContent>
+    <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
+        <MudForm @ref="_form" Model="_newCategory">
+            <!-- Nama Category -->
+            <MudTextField Label="Category Name"
+                          @bind-Value="_newCategory.NameCategory"
+                          Variant="Variant.Outlined"
+                          For="@(() => _newCategory.NameCategory)"
+                          Class="ml-5 pa-5"
+                          Style="width: 700px;" />
+
+            <!-- Deskripsi -->
+            <MudTextField Label="Deskripsi"
+                          @bind-Value="_newCategory.Deskripsi"
+                          Variant="Variant.Outlined"
+                          For="@(() => _newCategory.Deskripsi)"
+                          Lines="3"
+                          TextAlign="TextAlign.Start"
+                          Class="ml-5 pa-5"
+                          Style="width: 700px; margin-top:10px;" />
+
+            <!-- ImageCategory -->
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1 pa-5 ml-5">Image Category</MudText>
+            <InputFile OnChange="OnCategoryImageChange" Class="pa-5 ml-5"/>
+            @if (!string.IsNullOrEmpty(_categoryImagePreview))
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1 pa-5 ml-5">Preview:</MudText>
+                <img class ="pa-5 ml-5"src="@_categoryImagePreview" style="max-width:150px; max-height:150px;" />
+            }
+
+            <!-- ImageBanner -->
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1 ml-5 pa-5">Image Banner</MudText>
+            <InputFile OnChange="OnBannerImageChange" Class="pa-5 ml-5" />
+            @if (!string.IsNullOrEmpty(_bannerImagePreview))
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1 pa-5 ml-5">Preview:</MudText>
+                <img src="@_bannerImagePreview" style="max-width:150px; max-height:150px;" />
+            }
+
+            <!-- Tombol Aksi -->
+            <MudStack Row="true" Class="mt-4 pa-5 ml-5" Style="text-align: right;">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Add Category</MudButton>
+                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudDialogContent>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudDialogContent>
+    <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
+        <MudForm @ref="_form" Model="_newCategory">
+            <!-- Nama Category -->
+            <MudTextField Label="Category Name"
+                          @bind-Value="_newCategory.NameCategory"
+                          Variant="Variant.Outlined"
+                          For="@(() => _newCategory.NameCategory)"
+                          Style="width: 300px;" />
+
+            <!-- Deskripsi -->
+            <MudTextField Label="Deskripsi"
+                          @bind-Value="_newCategory.Deskripsi"
+                          Variant="Variant.Outlined"
+                          For="@(() => _newCategory.Deskripsi)"
+                          Lines="3"
+                          TextAlign="TextAlign.Start"
+                          Style="width: 300px; margin-top:10px;" />
+
+            <!-- ImageCategory -->
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">Image Category</MudText>
+            <InputFile OnChange="OnCategoryImageChange"/>
+            @if (!string.IsNullOrEmpty(_categoryImagePreview))
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Preview:</MudText>
+                <img src="@_categoryImagePreview" style="max-width:150px; max-height:150px;" />
+            }
+
+            <!-- ImageBanner -->
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">Image Banner</MudText>
+            <InputFile OnChange="OnBannerImageChange" />
+            @if (!string.IsNullOrEmpty(_bannerImagePreview))
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Preview:</MudText>
+                <img src="@_bannerImagePreview" style="max-width:150px; max-height:150px;" />
+            }
+
+            <!-- Tombol Aksi -->
+            <MudStack Row="true" Class="mt-4 pa-5 ml-5" Style="text-align: center;">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Add Category</MudButton>
+                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudDialogContent>
+</MudHidden>
+
+
+
+@code {
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private CategoryCreateModel _newCategory = new();
+    private MudForm? _form;
+
+    private IBrowserFile? _categoryFile;
+    private IBrowserFile? _bannerFile;
+    private string? _categoryImagePreview;
+    private string? _bannerImagePreview;
+
+    private async Task OnCategoryImageChange(InputFileChangeEventArgs e)
+    {
+        _categoryFile = e.File;
+        _newCategory.ImageCategory = _categoryFile;
+
+        using var stream = _categoryFile.OpenReadStream(10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        _categoryImagePreview = $"data:{_categoryFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+    }
+
+    private async Task OnBannerImageChange(InputFileChangeEventArgs e)
+    {
+        _bannerFile = e.File;
+        _newCategory.ImageBanner = _bannerFile;
+
+        using var stream = _bannerFile.OpenReadStream(10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        _bannerImagePreview = $"data:{_bannerFile.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+    }
+
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            await ApiService.AddNewCategory(_newCategory);
+            Snackbar.Add("Category added successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(_newCategory));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to add category: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

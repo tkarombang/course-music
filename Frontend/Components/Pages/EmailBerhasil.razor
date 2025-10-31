@@ -1,0 +1,104 @@
+@page "/emailberhasil"
+@rendermode InteractiveServer
+@layout Layout.PurchaseLayout
+
+<MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center">
+    <MudItem xs="12" class="d-flex justify-center">
+        <MudImage
+            class="mt-12"
+            Src="img/Berhasil.svg" 
+            Alt="Music"
+            Width="250"
+            Height="250"
+            Elevation="0" />
+    </MudItem>
+
+    <MudContainer Class="card-bellow">
+    
+        <!-- Versi untuk layar Medium ke atas -->
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudText 
+                Typo="Typo.h5" 
+                class="ml-15 mb-2"
+                Color="Color.Secondary" 
+                style="font-weight: 500;">Konfirmasi Email Berhasil
+            </MudText>
+
+            <MudText 
+                Typo="Typo.subtitle1" 
+                class="text-bellow"
+                Color="Color.Tertiary">Silahkan Login terlebih dahulu untuk masuk ke aplikasi
+            </MudText>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Secondary"
+                       Class="Button-masuk"
+                       Href="/login">
+                Masuk Sekarang
+            </MudButton>
+        </MudHidden>
+
+        <!-- Versi untuk layar Xs & Sm -->
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudText 
+                Typo="Typo.subtitle1" 
+                Class="ml-4 "
+                Align="Align.Center"
+                Color="Color.Secondary" 
+                style="font-weight: 400;">
+                Konfirmasi Email Berhasil
+            </MudText>
+
+            <MudText 
+                Typo="Typo.body2" 
+                Class="ml-4 pa-5"
+                Align="Align.Center"
+                Color="Color.Tertiary" 
+                >
+                Silahkan Login terlebih dahulu untuk masuk ke aplikasi
+            </MudText>
+            <MudGrid Justify="Justify.Center">
+                <MudButton Variant="Variant.Filled"
+                       Color="Color.Secondary"
+                       Class="Button-small mt-5 ml-10"
+                       Style=""
+                       Href="/login">
+                Masuk Sekarang
+            </MudButton>
+            </MudGrid>
+            
+        </MudHidden>
+    </MudContainer>
+    
+</MudGrid>
+
+<style>
+    .card-bellow{
+        width: 435px; /* bisa disesuaikan */
+        height: 68px;
+        justify-content: center;
+        padding: 32px;
+        gap: 8px;
+        outline: 0vh;
+    }
+
+    .text-bellow{
+        width: 500px;
+        height: 24px;
+    }
+
+    .Button-small{
+        width: 176px;
+        height: 55px;
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+    }
+    .Button-masuk{
+        margin-top: 40px;
+        margin-left: 120px;
+        width: 176px;
+        height: 55px;
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+    }
+</style>

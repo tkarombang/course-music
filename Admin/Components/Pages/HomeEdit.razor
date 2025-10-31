@@ -1,0 +1,40 @@
+@using Admin.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@layout Layout.MainLayout
+
+<MudDialog>
+  <TitleContent>
+    Dialog Title
+  </TitleContent>
+  <DialogContent>
+  <EditForm Model="@Invoice">
+    <MudPaper Class="pa-4">
+      <MudText Typo="Typo.caption">No.Invoice: </MudText>
+      <MudText Typo="Typo.subtitle1">@Invoice!.NoInvoice </MudText>
+      <MudText Typo="Typo.caption">Email: </MudText>
+      <MudText Typo="Typo.subtitle1">@Invoice.Email </MudText>
+      <MudText Typo="Typo.caption">Jumlah Kursus</MudText>
+      <MudText Typo="Typo.subtitle1">@Invoice.JumlahKursus </MudText>
+      <MudText Typo="Typo.caption">Total harga: </MudText>
+      <MudText Typo="Typo.subtitle1">
+          @($"IDR {Invoice.TotalHarga:N0}")
+      </MudText>
+    </MudPaper>
+  </EditForm>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+
+  [CascadingParameter]
+  private IMudDialogInstance? MudDialog { get; set; }
+
+  [Parameter]
+  public InvoiceModel? Invoice { get; set; } = new InvoiceModel();
+
+  private void Cancel() => MudDialog!.Cancel();
+}

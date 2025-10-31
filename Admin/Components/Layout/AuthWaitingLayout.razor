@@ -1,0 +1,31 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        @* TAMPILKAN KONTEN HOME.RAZOR DI SINI JIKA USER TEROTENTIKASI *@
+        @Body 
+    </Authorized>
+    <NotAuthorized>
+        @* INI BERJALAN JIKA AUTH STATE GAGAL/ANONIM (setelah loading) *@
+        @{
+            // PENTING: Navigasi hanya jika kita yakin ini bukan prerendering awal
+            if (Navigation.Uri.Contains("/home", StringComparison.OrdinalIgnoreCase))
+            {
+                 // Jika Anda mencoba mengakses /home tapi NotAuthorized, redirect.
+                 Navigation.NavigateTo("/", true);
+            }
+        }
+    </NotAuthorized>
+    <Authorizing>
+        @* INI BERJALAN SELAMA CUSTOMAUTHSTATEPROVIDER MEMUAT TOKEN *@
+        <div class="d-flex flex-column justify-center align-center" style="height: 100vh;">
+            <MudText Typo="Typo.h5">Memuat Data Admin...</MudText>
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+        </div>
+    </Authorizing>
+</AuthorizeView>
+
+@code {
+    // Anda dapat menambahkan logika layout lainnya di sini
+}

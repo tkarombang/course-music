@@ -1,0 +1,73 @@
+@using System.ComponentModel.DataAnnotations
+@using Admin.Models
+@* @using Microsoft.AspNetCore.Authorization
+@attribute [Authorize] *@
+@layout Layout.MainLayout
+
+<MudDialog>
+  <TitleContent>
+    Edit User
+  </TitleContent>
+  <DialogContent>
+        <MudPaper Class="pa-4">
+          <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField T="int" Label="User ID" @bind-Value="EditModel.Id" Disabled="true" Class="mb-4" />
+            <MudTextField T="string" Label="Name" @bind-Value="EditModel.UserName" Required="true" RequiredError="Name is required!" />
+            <MudTextField T="string" Label="Email" @bind-Value="EditModel.Email" Required="true" RequiredError="Email is required!"
+              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+
+            <MudSwitch @bind-Value="EditModel.IsActive" Color="Color.Tertiary" Class="mt-4">
+                Status: @(EditModel.IsActive ? "Active" : "Inactive")
+            </MudSwitch>
+          </MudForm>
+        </MudPaper>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public UserManModel UserManEdit {get;set;} = new();
+    private UserManModel EditModel = new();
+
+    protected override void OnInitialized()
+    {
+      if (UserManEdit != null)
+      {
+        EditModel = new UserManModel
+        {
+          Id = UserManEdit.Id,
+          UserName = UserManEdit.UserName,
+          Email = UserManEdit.Email,
+          IsActive = UserManEdit.IsActive
+        };
+      }
+    }
+
+    
+  private void Submit() 
+  {
+    form!.Validate();
+    if(success) MudDialog.Close(DialogResult.Ok(EditModel));
+  } 
+
+  private void Cancel() => MudDialog.Cancel();
+
+  bool success;
+  string[] errors = { };
+  MudTextField<string> pwField1;
+  MudForm form;
+
+  private string PasswordMatch(string arg)
+  {
+    if (pwField1.Value != arg)
+      return "Passwords don't match";
+    return null;
+  }
+}

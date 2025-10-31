@@ -1,0 +1,266 @@
+@page "/usermanagement"
+@using Admin.Models
+@using Admin.Services
+@rendermode InteractiveServer
+@layout Layout.MainLayout
+
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IAdminAuthService AuthService
+@inject AdminApiService ApiService
+
+<MudMainContent Class="m-auto h-100">
+  <MudContainer Class="mt-6">
+    <MudPaper Class="pa-5 mt-5 mb-2" Elevation="2" Style="background-color:white;">
+      <!-- Header -->
+      <MudText Typo="Typo.h5" Class="mb-2">User Management</MudText>
+
+      <MudItem xs="12" sm="6" md="4" Class="d-flex justify-center align-content-center gap-4 mb-2">
+        <!-- Add User Button -->
+        <MudButton Variant="Variant.Filled" Size="Size.Small"
+          Style="text-align:center; background-color:#226957; color:white;" Class="mb-2 mt-2" OnClick="@OpenDialogAdd">
+          Add User
+        </MudButton>
+
+
+        <MudTextField T="string" Label="Search Users" AdornmentIcon="@Icons.Material.Filled.Search"
+          Adornment="Adornment.Start" Immediate="true" Style="max-width:300px;" AdornmentColor="Color.Primary"
+          Class="mb-2" ValueChanged="@OnSearchTextChanged" Clearable="true" />
+      </MudItem>
+
+      @if (_isLoading)
+      {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+      }
+      else
+      {
+        <!-- User Table -->
+        <MudSimpleTable Hover="@hover" Style="overflow-x:auto;">
+          <thead>
+            <tr class="text-center">
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var user in _users)
+            {
+              <tr class="text-center">
+                <td>@((_users.IndexOf(user) + 1) + ((_currentPage - 1) * _pageSize))</td>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.Role</td>
+                <td>
+                  @if (user.IsActive)
+                  {
+                    <MudChip T="string" Label="true" Variant="Variant.Filled" Rounded="true"
+                      Style="width:80px; height:35px; display:flex; align-items:center; justify-content:center; background-color:#226957; color:white;">
+                      Active
+                    </MudChip>
+                  }
+                  else
+                  {
+                    <MudChip T="string" Label="true" Variant="Variant.Filled" Rounded="true"
+                      Style="width:80px; height:35px; display:flex; align-items:center; justify-content:center; background-color:#f44336; color:white;">
+                      Inactive
+                    </MudChip>
+                  }
+                </td>
+                <td>
+                  <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+                    @onclick="() => OpenDialogEdit(user)">
+                    Edit
+                  </MudButton>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </MudSimpleTable>
+
+        @if (_totalItems > _pageSize)
+        {
+          <div class="d-flex justify-content-center pt-4">
+            <MudPagination Selected="@_currentPage" SelectedChanged="OnPageChanged"
+              Count="((_totalItems + _pageSize - 1) / _pageSize)" Size="Size.Large" Color="Color.Inherit" />
+          </div>
+        }
+      }
+
+    </MudPaper>
+  </MudContainer>
+
+</MudMainContent>
+
+
+@code {
+  private List<UserManModel> _users = new();
+  private bool hover = true;
+  private bool _isLoading = true;
+  private string _searchText = string.Empty;
+
+  private string adminData = string.Empty;
+  private string errorMessage = string.Empty;
+  private int _currentPage = 1;
+  private int _pageSize = 10;
+  private int _totalItems = 0;
+  private string _searchTerm = string.Empty;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await FetchUsersPagedAsync();
+  }
+
+
+  private async Task FetchUsersPagedAsync()
+  {
+    _isLoading = true;
+    StateHasChanged();
+
+    try
+    {
+      var result = await ApiService.GetUsersPagedAsync(
+      searchTerm: _searchTerm,
+      pageNumber: _currentPage,
+      pageSize: _pageSize
+      );
+
+      _users = result.Items;
+      _totalItems = result.TotalCount;
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"ERROR TIDAK BERHASIL TANGKAP DATA USERS: {ex.Message}");
+    }
+    finally
+    {
+      _isLoading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task OnSearchTextChanged(string value)
+  {
+    if (_searchTerm == value) return;
+
+    _currentPage = 1;
+    _searchTerm = value;
+
+    await FetchUsersPagedAsync();
+  }
+
+  private async Task OnPageChanged(int newPage)
+  {
+    if (_currentPage == newPage) return;
+    _currentPage = newPage;
+    await FetchUsersPagedAsync();
+  }
+
+
+
+
+
+  private async Task FetchUserAsync()
+  {
+    try
+    {
+      _isLoading = true;
+      _users = await ApiService.GetAllUsersAsync();
+    }
+    catch (Exception err)
+    {
+      Console.WriteLine($"ERROR FETCHING DATA USERS: {err.Message}");
+    }
+    finally
+    {
+      _isLoading = false;
+      StateHasChanged();
+    }
+  }
+
+
+
+  private async Task OpenDialogEdit(UserManModel userManEdit)
+  {
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    var parameters = new DialogParameters { ["UserManEdit"] = userManEdit };
+
+    var dialog = DialogService.Show<UserManagementEdit>("Edit User", parameters, options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled && result.Data is UserManModel updatedUser)
+    {
+      try
+      {
+        await ApiService.UpdateUserAsync(updatedUser);
+        await FetchUserAsync();
+        Snackbar.Add("UPDATE BERHASIL!", Severity.Success);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Gagal: {ex.Message}");
+      }
+    }
+  }
+
+  private async Task OpenDialogAdd()
+  {
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    var dialog = DialogService.Show<UserManagementAdd>("Add New User", options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled && result.Data is UserManModel newUser)
+    {
+      try
+      {
+        await ApiService.AddNewUserAsync(newUser);
+        Snackbar.Add("BERHASIL TAMBAH USER!", Severity.Success);
+        await FetchUserAsync();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Gagal: {ex.Message}");
+      }
+    }
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      try
+      {
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (!isAuthenticated)
+        {
+          Navigation.NavigateTo("/login");
+          return;
+        }
+
+        await ApiService.InitializeAsync(); 
+        adminData = await ApiService.GetAdminDataAsync();
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+      {
+        errorMessage = "Unauthorized: Please log in again.";
+        Navigation.NavigateTo("/login");
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+      {
+        errorMessage = "Forbidden: You don't have admin access.";
+      }
+      catch (Exception ex)
+      {
+        errorMessage = $"Failed to load admin data: {ex.Message}";
+      }
+      finally
+      {
+        _isLoading = false;
+      }
+    }
+  }
+}

@@ -1,0 +1,246 @@
+@page "/payment"
+@using Admin.Models
+@using Admin.Services
+@rendermode InteractiveServer
+@* @using Microsoft.AspNetCore.Authorization
+@attribute [Authorize] *@
+@layout Layout.MainLayout
+
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IAdminAuthService AuthService
+@inject AdminApiService ApiService
+
+<MudMainContent Class="m-auto h-100">
+  <MudContainer Class="mt-6">
+    <MudPaper Class="pa-5 mt-5 mb-2" Elevation="2" Style="background-color:white;">
+      <!-- Header -->
+      <MudText Typo="Typo.h5" Class="mb-2">Payment Method</MudText>
+
+      @if (_isLoading)
+      {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+      }else
+      {
+
+      <!-- Add User Button -->
+      <MudButton Variant="Variant.Filled" Size="Size.Small"
+        Style="text-align:center; background-color:#226957; color:white;" Class="mb-5" OnClick="@OpenDialogAdd">
+        Add Payment Method
+      </MudButton>
+
+      <!-- User Table -->
+      <MudSimpleTable Hover="@hover" Style="overflow-x:auto;">
+        <thead>
+          <tr class="text-center">
+            <th>ID</th>
+            <th>Name</th>
+            <th>Logo</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var pay in _paymentMethods)
+          {
+            <tr class="text-center">
+              <td>@(_paymentMethods.IndexOf(pay) + 1)</td>
+              <td>@pay.NameMethod</td>
+              <td>
+                @if (!string.IsNullOrEmpty(pay.LogoMethod))
+                {
+                    <MudImage Src="@pay.LogoMethod" Alt="Logo Bank" style="max-width:50px; max-height:50px;" />
+                    @* <MudImage Src="@pay.LogoMethod" Alt="Logo Bank" Elevation="25" Class="rounded-lg" />  *@
+                }
+                else
+                {
+                    <span>No Logo</span>
+                }
+
+              </td>
+              <td>
+                @if (pay.Status == "Active")
+                {
+                  <MudChip T="string" Label="true" Variant="Variant.Filled"
+                    Style="width:80px; height:35px; display:flex; align-items:center; justify-content:center; background-color:#226957; color:white;">
+                    Active
+                  </MudChip>
+                }
+                else
+                {
+                  <MudChip T="string" Label="true" Variant="Variant.Filled"
+                    Style="width:80px; height:35px; display:flex; align-items:center; justify-content:center; background-color:#f44336; color:white;">
+                    Inactive
+                  </MudChip>
+                }
+
+              </td>
+              <td>
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" Style="cursor:default;" @onclick="() => OpenDialogEdit(pay)">
+                  Edit
+                </MudButton>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </MudSimpleTable>
+      }
+
+    </MudPaper>
+  </MudContainer>
+</MudMainContent>
+
+
+@code {
+  private List<PayMetModel> _paymentMethods = new List<PayMetModel>();
+  private bool hover = true;
+  private bool _isLoading = true;
+
+  private string adminData = string.Empty;
+  private string errorMessage = string.Empty;
+  protected override async Task OnInitializedAsync()
+  {
+    await FetchPaymentAsync();
+  }
+
+
+  private async Task FetchPaymentAsync()
+  {
+    try
+    {
+      _paymentMethods = await ApiService.GetAllPaymentMethods();
+      foreach(var payment in _paymentMethods.Take(2))
+      {
+        Console.WriteLine($" ID: {payment.Id}, PAYMENT NAME: {payment.NameMethod}, LOGO: {payment.LogoMethod}, STATUS: {payment.Status}");
+      }
+      _isLoading = false;
+    }
+    catch(Exception err)
+    {
+      Console.WriteLine($"ERROR FETCHING PAYMENT PAGE: {err.Message}");
+    }
+    finally
+    {
+      _isLoading = false;
+      StateHasChanged();
+    }
+  }
+
+
+
+
+  private async Task OpenDialogEdit(PayMetModel paymentMethEdit)
+  {
+    var options = new DialogOptions 
+    { 
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Medium,
+      FullWidth = true
+    };
+
+    @* var initialUpdateModel = new PayMetCreateModel
+    {
+      Id = paymentMethEdit.Id,
+      NameMethod = paymentMethEdit.NameMethod,
+      Status = paymentMethEdit.Status,
+      CurrentLogoUrl = paymentMethEdit.LogoMethod,
+      LogoMethod = null!,
+    }; *@
+    var parameters = new DialogParameters { ["ModelToEdit"] = paymentMethEdit};
+
+    var dialog = DialogService.Show<PaymentEdit>("Edit Payment Method", parameters, options);
+
+    var result = await dialog.Result;
+
+    if(!result.Canceled && result.Data is PayMetCreateModel updatePayment)
+    {
+      try
+      {
+        @* await ApiService.UpdatePaymentMethod(updatePayment); *@
+        Snackbar.Add("UPDATE BERHASIL HORE...!", Severity.Success);
+        await FetchPaymentAsync();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"GAGAL: {ex.Message}");
+        Snackbar.Add("UPDATE GAGAL!", Severity.Success);
+      }
+    }
+    else
+    {
+      Snackbar.Add("TIDAK ADA PERUBAHAN");
+    }
+  }
+
+
+  private async Task OpenDialogAdd()
+  {
+    var options = new DialogOptions
+    {
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Medium,
+      FullWidth = true
+    };
+
+
+    
+    var dialog = DialogService.Show<PaymentAdd>("Add New Payment Method", options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled && result.Data is PayMetCreateModel newPayment)
+    {
+      try
+      {
+        Snackbar.Add("Uploading Logo...", Severity.Info);
+
+        await ApiService.AddNewPaymentMethod(newPayment);
+        Snackbar.Add("BERHASIL HORE..!", Severity.Success);
+        await FetchPaymentAsync();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"[GAGAL]: {ex.Message}");
+      }
+    }
+
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      StateHasChanged();
+      try
+      {
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (!isAuthenticated)
+        {
+          Navigation.NavigateTo("/login");
+          return;
+        }
+
+        await ApiService.InitializeAsync(); 
+        adminData = await ApiService.GetAdminDataAsync();
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+      {
+        errorMessage = "Unauthorized: Please log in again.";
+        Navigation.NavigateTo("/login");
+      }
+      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+      {
+        errorMessage = "Forbidden: You don't have admin access.";
+      }
+      catch (Exception ex)
+      {
+        errorMessage = $"Failed to load admin data: {ex.Message}";
+      }
+      finally
+      {
+        _isLoading = false;
+        StateHasChanged();
+      }
+    }
+  }
+}

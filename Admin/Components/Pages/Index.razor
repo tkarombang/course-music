@@ -1,0 +1,25 @@
+@page "/"
+@using Admin.Services
+@inject NavigationManager Navigation
+@inject IAdminAuthService AuthService
+
+
+@code {
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+      Console.WriteLine($"[DEBUG]: IsAuthenticated {isAuthenticated}");
+      if (isAuthenticated)
+      {
+        Navigation.NavigateTo("/home");
+      }
+      else
+      {
+        Navigation.NavigateTo("/login");
+      }
+    }
+    
+  }
+}

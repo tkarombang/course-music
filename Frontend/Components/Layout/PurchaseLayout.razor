@@ -1,0 +1,58 @@
+
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="@MyCustomTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout class="d-flex flex-column">
+    <NavEmailBerhasil/>
+
+    <MudMainContent Class="flex-grow-1">
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-n17 pl-0 pr-0">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+        
+    
+
+@code{
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#F2C94C",
+            Secondary = "#5D5FEF",
+            Tertiary = Colors.Shades.Black,
+            AppbarBackground = Colors.Red.Default,
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten1
+        },
+
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "260px",
+            DrawerWidthRight = "300px"
+        },
+
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Poppins","sans-serif" }
+            },
+            Button = new ButtonTypography()
+            {
+                FontFamily = new[] { "Poppins", "sans-serif" },
+                FontSize = "14px"
+            },
+        }
+    };
+
+    
+}

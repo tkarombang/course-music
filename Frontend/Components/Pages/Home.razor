@@ -1,0 +1,265 @@
+﻿@page "/"
+@layout Layout.MainLayout
+@using MudBlazor
+
+<PageTitle>Apple Music</PageTitle>
+
+<!-- Background wrapper -->
+<div style="position: relative; width:100%; min-height:520px; overflow:hidden;">
+    <!-- Blurred background image -->
+    <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background-image: url('/img/Copy of image3.png');
+        background-size: cover;
+        background-position: center;
+        filter: blur(1px);
+        z-index:0;
+    "></div>
+
+    <!-- gradient overlay -->
+    <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5));
+        z-index:1;
+    "></div>
+
+    <!-- content -->
+    <div style="position: relative; z-index:2; padding-top: 80px;">
+        <MudContainer Class="mud-py-10" Style="margin-top:auto;">
+            <!-- Heading -->
+            <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Tertiary" Class="mb-8 mt-n6" Style="font-weight:500;">
+                Hi Musiker! Gabung yuk di Apel Music
+            </MudText>
+            <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Tertiary">
+                Banyak kelas keren yang bisa menunjang bakat bermusik kamu
+            </MudText>
+
+            <!-- Cards -->
+            <MudGrid Justify="Justify.Center" Spacing="4" Style="margin-top: 35px;">
+                <!-- Card 1 -->
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+                        <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+                            <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">500+</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                                Lebih dari sekedar kelas biasa yang bisa mengeluarkan bakat kalian
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Card 2 -->
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+                        <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+                            <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">50+</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                                Lulusan yang menjadi musisi ternama dengan skill memukau
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Card 3 -->
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="mud-elevation-6" Style="height: 250px; border-radius: 16px; ">
+                        <MudCardContent Class="d-flex flex-column align-center text-center" Style="height: 100%; padding: 16px;">
+                            <MudText Typo="Typo.h2" Class="mb-10 mt-3" Color="Color.Secondary">10+</MudText>
+                            <MudText Align="Align.Center" Typo="Typo.subtitle1" Class="mud-text-dark">
+                                Coach Special kolaborasi dengan musisi terkenal
+                            </MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </div>
+</div>
+
+<!-- Explore Kelas Favorit -->
+<MudContainer MaxWidth="MaxWidth.Large" Class="mud-text-white mud-pt-12 mud-pb-10">
+    <!-- Section Title -->
+    <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Secondary" Class="mb-15 mt-15" Style="font-weight:500;">
+        Explore Kelas Favorit
+    </MudText>
+
+    <!-- Grid with 6 cards -->
+    <MudGrid Spacing="3" Justify="Justify.Center">
+        <!-- Row 1 -->
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-1.png" Title="Drummer Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Drum</MudText>
+                    <MudText Typo="Typo.h6">Kursus Drummer Special Coach (Eno Netral)</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 8.500.000</MudText>
+                </MudCardContent>
+        </MudItem>
+
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-2.png" Title="Guitar Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Gitar</MudText>
+                    <MudText Typo="Typo.h6">[Beginner] Guitar class for kids</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 1.600.000</MudText>
+                </MudCardContent>
+        </MudItem>
+
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-3.png" Title="Violin Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Biola</MudText>
+                    <MudText Typo="Typo.h6">Biola Mid-Level Course</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 3.000.000</MudText>
+                </MudCardContent>
+        </MudItem>
+
+        <!-- Row 2 -->
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-4.png" Title="Piano Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Drum</MudText>
+                    <MudText Typo="Typo.h6">Drummer for Kids (Level Basic/1)</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 2.200.000</MudText>
+                </MudCardContent>
+        </MudItem>
+
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-5.png" Title="Bass Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Piano</MudText>
+                    <MudText Typo="Typo.h6">Kursus Piano: From Zero to Pro (Full Package)</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 11.650.000</MudText>
+                </MudCardContent>
+        </MudItem>
+
+        <MudItem xs="6" lg="4">
+                <MudCardMedia Image="img/Copy of Rectangle 12-6.png" Title="Vocal Class" Style="height:250px; object-fit:cover; border-radius:16px;"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2">Saxophone</MudText>
+                    <MudText Typo="Typo.h6">Expert Level Saxophone</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">IDR 7.350.000</MudText>
+                </MudCardContent>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<!-- Pilih Kelas Impian -->
+<div style="position: relative; width:100%; min-height:520px; overflow:hidden; margin-top:5rem;">
+    <!-- gradient overlay -->
+    <div style="
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background-color: rgb(247, 247, 247);
+        z-index:1;
+    "></div>
+    <div style="position: relative; z-index:2;">
+        <MudContainer Class="mud-py-10">
+            <!-- Title -->
+            <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Secondary" Class="mb-20 mt-15" Style="font-weight:500;">
+                Pilih kelas impian kamu
+            </MudText>
+            <!-- Grid 2 rows × 4 items -->
+            <MudGrid Justify="Justify.Center" Spacing="6">
+
+                <!-- Drum -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 11.png" Alt="Drum"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Drum</MudText>
+                </MudItem>
+
+                <!-- Piano -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 12.png" Alt="Piano"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Piano</MudText>
+                </MudItem>
+
+                <!-- Gitar -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 13.png" Alt="Gitar"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Gitar</MudText>
+                </MudItem>
+
+                <!-- Bass -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 13-1.png" Alt="Bass"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Bass</MudText>
+                </MudItem>
+
+                <!-- Biola -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 14.png" Alt="Biola"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Biola</MudText>
+                </MudItem>
+
+                <!-- Menyanyi -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 15.png" Alt="Menyanyi"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Menyanyi</MudText>
+                </MudItem>
+
+                <!-- Flute -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 16-1.png" Alt="Flute"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Flute</MudText>
+                </MudItem>
+
+                <!-- Saxophone -->
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudImage Src="img/Copy of Rectangle 16-1.png" Alt="Saxophone"
+                            Style="width:100px; height:70px; border-radius:12px; object-fit:cover;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mt-2 mud-text-dark">Saxophone</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </div>
+</div>
+
+<!-- Benefit Section -->
+<MudContainer MaxWidth="MaxWidth.Large" Style="margin-top:5rem; margin-bottom:5rem;">
+    <MudGrid align-items="Center">
+        <!-- Left: Image with circle background -->
+        <MudItem xs="12" sm="5" Class="d-flex justify-center">
+            <div style="position: relative; width: 500px; height: 500px;">
+                <!-- Person image -->
+                <MudImage Src="img/Picture1.png" 
+                        Alt="Person playing guitar"
+                        Style="position: relative; width: 400px; height: auto; object-fit: contain;" />
+            </div>
+        </MudItem>
+
+        <!-- Right: Text content -->
+        <MudItem xs="12" sm="7">
+            <MudText Typo="Typo.h5" Color="Color.Secondary" Class="mud-typography-bold mud-mb-4" Style="margin-top:4rem;">
+                Benefit ikut Apel Course
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mud-text-dark" Align="Align.Justify">
+                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+                laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto 
+                beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut 
+                odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. 
+                Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, 
+                sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat 
+                voluptatem.
+            </MudText>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

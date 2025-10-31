@@ -1,0 +1,182 @@
+@using MudBlazor
+@using Admin.Models
+@using Admin.Services
+@inject AdminApiService ApiService
+@inject ISnackbar Snackbar
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudDialogContent>
+        <EditForm Model="@_courseModel" OnValidSubmit="HandleSubmit">
+            <MudStack>
+
+                <!-- Nama Course -->
+                <MudTextField Label="Nama Course"
+                              For="@(() => _courseModel.NamaCourse)"
+                              @bind-Value="_courseModel.NamaCourse"
+                              Required="true"
+                              Immediate="true"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.School"
+                              Class="ml-5 pa-5"
+                              Style="width: 500px;" />
+
+                <!-- Id Category -->
+                <MudNumericField T="int"
+                                 @bind-Value="_courseModel.IdCategory"
+                                 Label="Category ID"
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 Class="ml-5 pa-5"
+                                 Style="width: 500px;" />
+
+                <!-- Harga -->
+                <MudNumericField @bind-Value="_courseModel.Harga"
+                                 Label="Harga (Rp)"
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 Immediate="true"
+                                 Class="ml-5 pa-5"
+                                 Style="width: 500px;" />
+
+                <!-- 🆕 Deskripsi -->
+                <MudTextField Label="Deskripsi"
+                              For="@(() => _courseModel.Deskripsi)"
+                              @bind-Value="_courseModel.Deskripsi"
+                              Lines="5"
+                              Variant="Variant.Outlined"
+                              Placeholder="Tulis deskripsi course di sini..."
+                              Class="ml-5 pa-5"
+                              Style="width: 500px;" />
+
+                <!-- Upload Gambar -->
+                <div class="mt-3">
+                    <label class="text-muted mb-1 ml-5 pa-5">Upload Gambar</label>
+                    <InputFile OnChange="OnImageSelected" />
+                    @if (_previewImage != null)
+                    {
+                        <img src="@_previewImage" style="max-width: 180px; margin-top:10px; border-radius:8px;" />
+                    }
+                </div>
+
+            </MudStack>
+        </EditForm>
+    </MudDialogContent>
+
+    <MudDialogActions class="mt-10 mr-5 mb-5" style="text-align: right;">
+        <MudButton Color="Color.Secondary" OnClick="Cancel" Variant="Variant.Outlined" Class="mr-5">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="HandleSubmit" Variant="Variant.Filled">Save</MudButton>
+    </MudDialogActions>
+</MudHidden>
+
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudDialogContent>
+        <EditForm Model="@_courseModel" OnValidSubmit="HandleSubmit">
+            <MudStack>
+                <!-- Nama Course -->
+                <MudTextField Label="Nama Course"
+                            For="@(() => _courseModel.NamaCourse)"
+                            @bind-Value="_courseModel.NamaCourse"
+                            Required="true"
+                            Immediate="true"
+                            Variant="Variant.Outlined"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.School"
+                            Class="ml-5 pa-5"
+                            Style="width: 300px;" />
+
+                <!-- Id Category -->
+                <MudNumericField T="int"
+                                 @bind-Value="_courseModel.IdCategory"
+                                 Label="Category ID"
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 Class="ml-5 pa-5"
+                                 Style="width: 300px;"/>
+                
+                <MudTextField Label="Deskripsi"
+                              For="@(() => _courseModel.Deskripsi)"
+                              @bind-Value="_courseModel.Deskripsi"
+                              Lines="5"
+                              Variant="Variant.Outlined"
+                              Placeholder="Tulis deskripsi course di sini..."
+                              Class="ml-5 pa-5"
+                              Style="width: 300px;" />
+
+                <!-- Harga -->
+                <MudNumericField @bind-Value="_courseModel.Harga"
+                                Label="Harga (Rp)"
+                                Variant="Variant.Outlined"
+                                Required="true"
+                                Immediate="true"
+                                Class="ml-5 pa-5"
+                                Style="width: 300px;" />
+
+                <!-- Upload Gambar -->
+                <div class="mt-3">
+                    <label class="text-muted mb-1 ml-5 pa-5">Upload Gambar</label>
+                    <InputFile OnChange="OnImageSelected" class="ml-5 pa-5"/>
+                    @if (_previewImage != null)
+                    {
+                        <img src="@_previewImage" style="max-width: 180px; margin-top:10px; border-radius:8px;" />
+                    }
+                </div>
+
+            </MudStack>
+        </EditForm>
+    </MudDialogContent>
+
+    <MudDialogActions class="mt-10 mb-5" style="text-align: center;">
+        <MudButton 
+            Color="Color.Secondary" 
+            OnClick="Cancel" 
+            Variant="Variant.Outlined" 
+            style="width: 150px"
+            Class="mr-5">Cancel</MudButton>
+        <MudButton 
+            Color="Color.Primary" 
+            OnClick="HandleSubmit" 
+            style="width: 150px"
+            Variant="Variant.Filled">Save</MudButton>
+    </MudDialogActions>
+</MudHidden>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private CourseCreateModel _courseModel = new();
+    private string? _previewImage;
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            _courseModel.ImageCourse = file;
+
+            // 🧩 Preview Gambar (base64)
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+            _previewImage = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            Snackbar.Add("Uploading Course...", Severity.Info);
+            await ApiService.AddNewCourse(_courseModel);
+            Snackbar.Add("Course added successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(_courseModel));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to add course: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,183 @@
+@using Admin.Models
+@using Admin.Services
+@using MudBlazor
+@inject ISnackbar Snackbar
+@inject AdminApiService ApiService
+
+<MudHidden Breakpoint="Breakpoint.SmAndDown">
+    <MudDialogContent>
+        <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
+            <MudForm @ref="_form" Model="_editModel">
+
+                <!-- Nama Course -->
+                <MudTextField Label="Nama Course"
+                              @bind-Value="_editModel.NamaCourse"
+                              Variant="Variant.Outlined"
+                              Style="width: 920px;" />
+
+                <!-- Harga -->
+                <MudTextField Label="Harga"
+                              @bind-Value="_editModel.Harga"
+                              Variant="Variant.Outlined"
+                              Style="width: 920px;"
+                              Type="number" />
+
+                <!-- Deskripsi -->
+                <MudTextField Label="Deskripsi"
+                              @bind-Value="_editModel.Deskripsi"
+                              Variant="Variant.Outlined"
+                              Lines="4"
+                              Style="width: 920px;"
+                              TextUpdateSuppression="false"
+                              Placeholder="Masukkan deskripsi course..." />
+
+                <!-- Gambar -->
+                <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image</MudText>
+                @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCourse))
+                {
+                    <MudImage Src="@($"http://localhost:5058/img/list_kelas/{ModelToEdit.ImageCourse}")"
+                              Alt="Current Image"
+                              Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+                }
+
+                <InputFile OnChange="OnInputFileChange" />
+
+                @if (!string.IsNullOrEmpty(_imagePreview))
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview Gambar Baru:</MudText>
+                    <img src="@_imagePreview" style="max-width:150px; max-height:150px;" />
+                }
+
+                <!-- Tombol Aksi -->
+                <MudStack Row="true" Spacing="2" Class="mt-4">
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    </MudDialogContent>
+</MudHidden>
+
+<MudHidden Breakpoint="Breakpoint.MdAndUp">
+    <MudDialogContent>
+        <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
+            <MudForm @ref="_form" Model="_editModel">
+
+                <!-- Nama Course -->
+                <MudTextField Label="Nama Course"
+                              @bind-Value="_editModel.NamaCourse"
+                              Variant="Variant.Outlined"
+                              Style="width: 350px;" />
+
+                <!-- Harga -->
+                <MudTextField Label="Harga"
+                              @bind-Value="_editModel.Harga"
+                              Variant="Variant.Outlined"
+                              Style="width: 350px;"
+                              Type="number" />
+
+                <!-- Deskripsi -->
+                <MudTextField Label="Deskripsi"
+                              @bind-Value="_editModel.Deskripsi"
+                              Variant="Variant.Outlined"
+                              Lines="4"
+                              Style="width: 350px;"
+                              Placeholder="Masukkan deskripsi course..." />
+
+                <!-- Gambar -->
+                <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image</MudText>
+                @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCourse))
+                {
+                    <MudImage Src="@($"http://localhost:5058/img/list_kelas/{ModelToEdit.ImageCourse}")"
+                              Alt="Current Image"
+                              Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+                }
+
+                <InputFile OnChange="OnInputFileChange" />
+
+                @if (!string.IsNullOrEmpty(_imagePreview))
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview Gambar Baru:</MudText>
+                    <img src="@_imagePreview" style="max-width:150px; max-height:150px;" />
+                }
+
+                <!-- Tombol Aksi -->
+                <MudStack Row="true" Spacing="2" Class="mt-4">
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    </MudDialogContent>
+</MudHidden>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public CourseModel? ModelToEdit { get; set; }
+
+    private CourseCreateModel _editModel = new();
+    private MudForm? _form;
+    private IBrowserFile? _selectedFile;
+    private string? _imagePreview;
+
+    protected override void OnInitialized()
+    {
+        if (ModelToEdit != null)
+        {
+            _editModel = new CourseCreateModel
+            {
+                IdCourse = ModelToEdit.IdCourse,
+                NamaCourse = ModelToEdit.NamaCourse,
+                Harga = ModelToEdit.Harga,
+                IdCategory = ModelToEdit.IdCategory,
+                ImageFileName = ModelToEdit.ImageCourse,
+                Deskripsi = ModelToEdit.Deskripsi // ⬅️ tambahkan ini agar data deskripsi ikut di-load
+            };
+        }
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.File;
+        _editModel.ImageCourse = _selectedFile;
+
+        using var stream = _selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+        _imagePreview = $"data:{_selectedFile.ContentType};base64,{Convert.ToBase64String(bytes)}";
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            if (_selectedFile != null)
+            {
+                using var stream = _selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var bytes = ms.ToArray();
+
+                _editModel.ImageBase64 = Convert.ToBase64String(bytes);
+                _editModel.ImageFileName = _selectedFile.Name;
+            }
+
+            if (_editModel.IdCourse == null)
+            {
+                Snackbar.Add("Course ID tidak ditemukan, update gagal.", Severity.Error);
+                return;
+            }
+
+            await ApiService.UpdateCourse(_editModel);
+            Snackbar.Add("Course updated successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(_editModel));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to update course: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

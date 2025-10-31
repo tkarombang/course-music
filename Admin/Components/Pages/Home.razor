@@ -1,0 +1,282 @@
+﻿@page "/home"
+@using Admin.Models
+@using Admin.Services
+@layout Layout.MainLayout
+
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+@inject IAdminAuthService AuthService
+@inject AdminApiService ApiService;
+
+<MudMainContent Class="m-auto h-100">
+  <MudContainer Class="mt-6">
+    <MudPaper Class="pa-5 mt-5 mb-2" Elevation="2">
+      <MudText Class="h2 mb-5">Welcome, Admin</MudText>
+
+      @if (_isLoading)
+      {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+      }
+      else
+      {
+        <MudGrid>
+          <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="mud-warning m-auto p-auto">
+              <MudCardContent Class="d-flex align-center flex-column gap-4">
+                <MudItem Class="d-flex justify-space-around align-center gap-2">
+                  <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Class="text-white" />
+                  <MudText Typo="Typo.body2" Class="text-white">Total User Active</MudText>
+                </MudItem>
+                <MudText Typo="Typo.h3" Class="text-white">@TotalUserActive</MudText>
+              </MudCardContent>
+            </MudCard>
+          </MudItem>
+
+          <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="mud-success m-auto p-auto">
+              <MudCardContent Class="d-flex align-center flex-column gap-4">
+                <MudItem Class="d-flex justify-space-around align-center gap-2">
+                  <MudIcon Icon="@Icons.Material.Filled.Payments" Class="text-white" />
+                  <MudText Typo="Typo.body2" Class="text-white">Total Payment</MudText>
+                </MudItem>
+                <MudText Typo="Typo.h3" Class="text-white">@TotalPayment</MudText>
+              </MudCardContent>
+            </MudCard>
+          </MudItem>
+
+          <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="mud-theme-primary m-auto p-auto">
+              <MudCardContent Class="d-flex align-center flex-column gap-4">
+                <MudItem Class="d-flex justify-space-around align-center gap-2">
+                  <MudIcon Icon="@Icons.Material.Filled.SupervisorAccount" Class="text-white" />
+                  <MudText Typo="Typo.body2" Class="text-white">Total Member</MudText>
+                </MudItem>
+                <MudText Typo="Typo.h3" Class="text-white">@TotalMember</MudText>
+              </MudCardContent>
+            </MudCard>
+          </MudItem>
+
+          <MudItem xs="12" sm="6" md="4">
+              <MudTextField T="string"
+                Label="Cari"
+                ValueChanged="OnSearchChanged"
+                Value="@_searchText"
+                Adornment="Adornment.Start"
+                AdornmentIcon="@Icons.Material.Filled.Search"
+                AdornmentColor="Color.Primary"
+                Clearable="true"
+                Immediate="true"
+                Dense="true"
+                Variant="Variant.Outlined"
+                Placeholder="Ketik email atau no invoice..." />
+          </MudItem>
+
+
+
+        </MudGrid>
+        <MudGrid>
+          <MudItem lg="12" sm="12" xs="12">
+            <MudTable Items="FilteredInvoices" Hover="true" Striped="true" Breakpoint="Breakpoint.None" Bordered="true" Style="overflow-x:auto;">
+              <HeaderContent>
+                <MudTh>Email</MudTh>
+                <MudTh>No.Invoice</MudTh>
+                <MudTh>Date</MudTh>
+                <MudTh>Total Course</MudTh>
+                <MudTh>Total Price</MudTh>
+                <MudTh>Action</MudTh>
+              </HeaderContent>
+              <RowTemplate>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>@context.NoInvoice</MudTd>
+                <MudTd>@context.TanggalBeli.ToString("dd-MM-yyyy")</MudTd>
+                <MudTd>@context.JumlahKursus</MudTd>
+                <MudTd>@context.TotalHarga.ToString("C")</MudTd>
+                <MudTd>
+                  <MudButton
+                    Variant="Variant.Filled" 
+                    Color="Color.Primary" 
+                    @onclick="@(() => OpenDialogEdit(@context))">
+                    Detail
+                  </MudButton>
+                </MudTd>
+              </RowTemplate>
+            </MudTable>
+          </MudItem>
+        </MudGrid>
+      }
+
+    </MudPaper>
+  </MudContainer>
+</MudMainContent>
+
+@code {
+  private List<InvoiceModel> invoices = new List<InvoiceModel>();
+  private List<UserManModel> activeUser = new List<UserManModel>();
+  private int TotalUserActive => activeUser.Count(au => au.IsActive == true);
+  private int TotalPayment => invoices.Count;
+  private int TotalMember => invoices.Count(m => m.JumlahKursus > 0);
+
+
+
+  private string adminData = string.Empty;
+  private string errorMessage = string.Empty;
+  private bool _isLoading = true;
+  private bool _open = false;
+  private bool _dense = false;
+  private Breakpoint _breakpoint = Breakpoint.Lg;
+  private DrawerClipMode _clipMode = DrawerClipMode.Never;
+  private void ToggleDrawer()
+  {
+    _open = !_open;
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await FetchDataAsync();
+    await FetchUsersAsync();
+  }
+
+  
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+                if (!isAuthenticated)
+                {
+                    Navigation.NavigateTo("/login");
+                    return;
+                }
+
+                await ApiService.InitializeAsync();
+                adminData = await ApiService.GetAdminDataAsync();
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "Unauthorized: Please log in again.";
+                Navigation.NavigateTo("/login");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                errorMessage = "Forbidden: You don't have admin access.";
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Failed to load admin data: {ex.Message}";
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+  private async Task FetchUsersAsync()
+  {
+    try
+    {
+      activeUser = await ApiService.GetAllUsersAsync();
+    }
+    catch (Exception err)
+    {
+      Console.WriteLine($"ERROR FETCHING ALL USERS DATA: {err.Message}");
+    }
+  }
+
+  private async Task FetchDataAsync()
+  {
+    try
+    {
+      invoices = await ApiService.GetDashboardInvoicesAsync();
+
+      foreach (var invoice in invoices.Take(2)) 
+      {
+        Console.WriteLine($"Invoice Sample: {invoice.NoInvoice}, Email: {invoice.Email}, Total Member: {TotalMember}, Total Active Users: {TotalUserActive}");
+      }
+      _isLoading = false;
+    }
+    catch (Exception err)
+    {
+      Console.WriteLine($"ERROR FETCHING DASHBOARD DATA: {err.Message}");
+    }
+    finally
+    {
+      _isLoading = false;
+      StateHasChanged();
+    }
+  }
+
+
+
+  private async Task OpenDialogEdit(InvoiceModel invoice)
+  {
+     var options = new DialogOptions
+    {
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Medium,
+      FullWidth = true
+    };
+
+    var parameters = new DialogParameters
+    {
+      {"Invoice", invoice}
+    };
+    var dialog = DialogService.Show<HomeEdit>("Edit Invoice", parameters, options);
+
+    var result = await dialog.Result;
+
+    if (!result!.Canceled)
+    {
+      StateHasChanged();
+    }
+   
+  }
+
+private string _searchText = string.Empty;
+
+private async Task OnSearchChanged(string value)
+{
+    _searchText = value ?? string.Empty;
+    StateHasChanged();
+    await Task.CompletedTask;
+}
+
+private Task<IEnumerable<string>> SearchInvoice(string value, CancellationToken cancellationToken)
+{
+    if (cancellationToken.IsCancellationRequested)
+        return Task.FromResult(Enumerable.Empty<string>());
+
+    IEnumerable<string> result;
+
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        // Tampilkan semua email + no invoice secara terpisah, bukan digabung jadi satu string
+        result = invoices.SelectMany(i => new[] { i.NoInvoice, i.Email })
+                         .Distinct();
+    }
+    else
+    {
+        result = invoices
+            .SelectMany(i => new[] { i.NoInvoice, i.Email })
+            .Where(s => s.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Distinct();
+    }
+
+    return Task.FromResult(result);
+}
+
+
+  // Table binding: tampilkan invoices atau hasil filter berdasarkan _searchText
+  private IEnumerable<InvoiceModel> FilteredInvoices =>
+      string.IsNullOrWhiteSpace(_searchText)
+          ? invoices
+          : invoices.Where(i =>
+              i.Email.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+              i.NoInvoice.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+
+  // Pastikan tabel memakai FilteredInvoices:
+  // <MudTable Items="FilteredInvoices" ...>
+}
+
