@@ -5,6 +5,9 @@ using MudBlazor.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Admin.Interfaces;
+using Admin.Services.UsersService;
+using Admin.Services.CategoriesService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +29,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
 
@@ -42,6 +45,8 @@ builder.Services.AddHttpClient<AdminApiService>(client =>
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
+builder.Services.AddScoped<IUsersApiInterface, UsersApiService>();
+builder.Services.AddScoped<CategoryApiService>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddMudServices();
 builder.Services.AddHttpContextAccessor();

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 
 
-namespace Backend.Service
+namespace Backend.Services
 {
   public class DataSeeder
   {

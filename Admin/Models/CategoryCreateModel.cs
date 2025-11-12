@@ -10,5 +10,7 @@ public class CategoryCreateModel
     public IBrowserFile? ImageBanner { get; set; }   // file banner
 
     public string? CurrentImageUrl { get; set; } // optional
+    public string? ImageBase64 {get;set;}
+    public string? ImageFileName{get;set;}
     public string? CurrentBannerUrl { get; set; } // optional
 }

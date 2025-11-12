@@ -1,6 +1,8 @@
 @page "/category"
+@using Admin.Interfaces
 @using Admin.Models
 @using Admin.Services
+@using Admin.Services.CategoriesService
 @using MudBlazor
 @rendermode InteractiveServer
 @layout Layout.MainLayout
@@ -9,276 +11,325 @@
 @inject IAdminAuthService AuthService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject CategoryApiService CategoryService
 @inject AdminApiService ApiService
 
 <MudMainContent Class="m-auto h-100">
-    <MudContainer Class="mt-6">
-        <MudPaper Class="pa-5 mt-5 mb-2" Elevation="2" Style="background-color:white;">
-            <!-- Header -->
-            <MudText Typo="Typo.h5" Class="mb-2">Category Management</MudText>
+	<MudContainer Class="mt-6">
+		<MudPaper Class="pa-5 mt-5 mb-2" Elevation="2" Style="background-color:white;">
+			<!-- Header -->
+			<MudText Typo="Typo.h5" Class="mb-2">Category Management</MudText>
 
-            @if (_isLoading)
-            {
-                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
-            }
-            else
-            {
-                <!-- Add Category Button -->
-                <MudButton Variant="Variant.Filled" Size="Size.Small"
-                           Style="text-align:center; background-color:#226957; color:white;" 
-                           Class="mb-3" OnClick="@OpenDialogAdd">
-                    Add Category
-                </MudButton>
+			@if (_isLoading)
+			{
+				<MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="d-flex justify-center my-8" />
+			}
+			else
+			{
+				<!-- Add Category Button -->
+				<MudButton Variant="Variant.Filled" Size="Size.Small"
+					Style="text-align:center; background-color:#226957; color:white;" Class="mb-3" OnClick="@OpenDialogAdd">
+					Add Category
+				</MudButton>
 
-                <!-- Search Bar -->
-                <MudTextField @bind-Value="SearchTerm"
-                              Placeholder="Search by Nama Category..."
-                              Variant="Variant.Outlined"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              Class="mb-5"
-                              Immediate="true" />
+				<!-- Search Bar -->
+				<MudTextField T="string" Label="Search Categories" AdornmentIcon="@Icons.Material.Filled.Search"
+					Adornment="Adornment.Start" Immediate="true" Style="max-width:300px;" AdornmentColor="Color.Primary"
+					Class="mb-2" ValueChanged="@OnSearchTextChanged" Clearable="true" />
 
-                <!-- Category Table -->
-                <MudSimpleTable Hover="@hover" Style="overflow-x:auto;">
-                    <thead>
-                        <tr class="text-center">
-                            <th>No</th>
-                            <th>Nama Category</th>
-                            <th>Deskripsi</th>
-                            <th style="text-align: center">Image Category</th>
-                            <th style="text-align: center">Image Banner</th>
-                            <th style="text-align: center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (_filteredCategories.Any())
-                        {
-                            @foreach (var cat in _filteredCategories.Select((c, index) => new { Category = c, Index = index + 1 }))
-                            {
-                                <tr class="text-center">
-                                    <td>@cat.Index</td>
-                                    <td>@cat.Category.NameCategory</td>
-                                    <td>@cat.Category.Deskripsi</td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(cat.Category.ImageCategory))
-                                        {
-                                            <MudImage Src="@($"http://localhost:5058/img/list_category/{cat.Category.ImageCategory}")"
-                                                      Alt="Category Image"
-                                                      Style="max-width:60px; max-height:60px;" />
-                                        }
-                                        else
-                                        {
-                                            <span>No Image</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(cat.Category.ImageBanner))
-                                        {
-                                            <MudImage Src="@($"http://localhost:5058/img/list_category/{cat.Category.ImageBanner}")"
-                                                      Alt="Banner Image"
-                                                      Style="max-width:60px; max-height:60px;" />
-                                        }
-                                        else
-                                        {
-                                            <span>No Banner</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <MudStack Row="true" Spacing="1" Justify="Justify.Center">
-                                            <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
-                                                       @onclick="() => OpenDialogEdit(cat.Category)">
-                                                Edit
-                                            </MudButton>
+				<!-- Category Table -->
+				<MudSimpleTable Hover="@hover" Style="overflow-x:auto;">
+					<thead>
+						<tr class="text-center">
+							<th>No</th>
+							<th>Nama Category</th>
+							<th>Deskripsi</th>
+							<th style="text-align: center">Image Category</th>
+							<th style="text-align: center">Image Banner</th>
+							<th style="text-align: center">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (_categories.Any())
+						{
+							@foreach (var cat in _categories.Select((c, index) => new { Category = c, Index = index + 1 }))
+							{
+								<tr class="text-center">
+									<td>@cat.Index</td>
+									<td>@cat.Category.NameCategory</td>
+									<td>@cat.Category.Deskripsi</td>
+									<td>
+										@if (!string.IsNullOrEmpty(cat.Category.ImageCategory))
+										{
+											<MudImage Src="@cat.Category.ImageCategory" Alt="Category Image"
+												Style="max-width:60px; max-height:60px;" />
+										}
+										else
+										{
+											<span>No Image</span>
+										}
+									</td>
+									<td>
+										@if (!string.IsNullOrEmpty(cat.Category.ImageBanner))
+										{
+											<MudImage Src="@cat.Category.ImageBanner" Alt="Banner Image" Style="max-width:60px; max-height:60px;" />
+										}
+										else
+										{
+											<span>No Banner</span>
+										}
+									</td>
+									<td>
+										<MudStack Row="true" Spacing="1" Justify="Justify.Center">
+											<MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small"
+												@onclick="() => OpenDialogEdit(cat.Category)">
+												Edit
+											</MudButton>
 
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
-                                                           @onclick="() => ConfirmDelete(cat.Category.IdCategory, cat.Category.NameCategory)" />
-                                        </MudStack>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr><td colspan="6" class="text-center">No categories found.</td></tr>
-                        }
-                    </tbody>
-                </MudSimpleTable>
-            }
-        </MudPaper>
-    </MudContainer>
+											<MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+												@onclick="() => ConfirmDelete(cat.Category.IdCategory, cat.Category.NameCategory)" />
+										</MudStack>
+									</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="6" class="text-center">No categories found.</td>
+							</tr>
+						}
+					</tbody>
+				</MudSimpleTable>
+				@if (_totalItems > _pageSize)
+				{
+					<div class="d-flex justify-content-center pt-4">
+						<MudPagination Selected="@_currentPage" SelectedChanged="OnPageChanged"
+							Count="((_totalItems + _pageSize - 1) / _pageSize)" Size="Size.Large" Color="Color.Inherit" />
+					</div>
+				}
+			}
+		</MudPaper>
+	</MudContainer>
 </MudMainContent>
 
 @code {
-    private List<CategoryModel> _categories = new();
-    private List<CategoryModel> _filteredCategories = new();
-    private bool hover = true;
-    private bool _isLoading = true;
-    private string adminData = string.Empty;
-    private string errorMessage = string.Empty;
-
-    private string _searchTerm = string.Empty;
-    private string SearchTerm
-    {
-        get => _searchTerm;
-        set
-        {
-            _searchTerm = value;
-            _filteredCategories = string.IsNullOrWhiteSpace(_searchTerm)
-                ? _categories
-                : _categories.Where(c => c.NameCategory.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await FetchCategoriesAsync();
-    }
-
-    private async Task FetchCategoriesAsync()
-    {
-        _isLoading = true;
-        try
-        {
-            _categories = await ApiService.GetAllCategories();
-            _filteredCategories = _categories;
-            Console.WriteLine($"Fetched {_categories.Count} categories.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ERROR FETCHING CATEGORIES]: {ex.Message}");
-            Snackbar.Add("Failed to fetch categories.", Severity.Error);
-        }
-        finally
-        {
-            _isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task OpenDialogAdd()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
-        };
-
-        var dialog = DialogService.Show<CategoryAdd>("Add New Category", options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is CategoryCreateModel newCategory)
-        {
-            try
-            {
-                await ApiService.AddNewCategory(newCategory);
-                Snackbar.Add("Category added successfully!", Severity.Success);
-                await FetchCategoriesAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GAGAL ADD CATEGORY]: {ex.Message}");
-                Snackbar.Add("Failed to add category.", Severity.Error);
-            }
-        }
-    }
-
-    private async Task OpenDialogEdit(CategoryModel category)
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
-        };
-
-        var parameters = new DialogParameters { ["ModelToEdit"] = category };
-
-        var dialog = DialogService.Show<CategoryEdit>("Edit Category", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is CategoryCreateModel updateCategory)
-        {
-            try
-            {
-                await ApiService.UpdateCategory(updateCategory);
-                Snackbar.Add("Category updated successfully!", Severity.Success);
-                await FetchCategoriesAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GAGAL UPDATE CATEGORY]: {ex.Message}");
-                Snackbar.Add("Failed to update category.", Severity.Error);
-            }
-        }
-    }
-
-    private async Task ConfirmDelete(int categoryId, string categoryName)
-    {
-        bool? result = await DialogService.ShowMessageBox(
-            "Confirm Delete",
-            $"Are you sure you want to delete category '{categoryName}'?",
-            yesText: "Yes", cancelText: "No");
-
-        if (result == true)
-        {
-            await DeleteCategoryAsync(categoryId);
-        }
-    }
-
-    private async Task DeleteCategoryAsync(int categoryId)
-    {
-        try
-        {
-            await ApiService.DeleteCategory(categoryId);
-            Snackbar.Add("Category deleted successfully!", Severity.Success);
-            await FetchCategoriesAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ERROR DELETE CATEGORY]: {ex.Message}");
-            Snackbar.Add("Failed to delete category.", Severity.Error);
-        }
-    }
+	private List<CategoryModel> _categories = new();
+	private bool hover = true;
+	private bool _isLoading = true;
+	private string adminData = string.Empty;
+	private string errorMessage = string.Empty;
+	private int _pageSize = 5;
+	private int _currentPage = 1;
+	private int _totalItems = 0;
+	private string _searchTerm = string.Empty;
+	private CancellationTokenSource _cts;
 
 
 
-     protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
-    {
-      StateHasChanged();
-      try
-      {
-        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
-        if (!isAuthenticated)
-        {
-          Navigation.NavigateTo("/login");
-          return;
-        }
+	protected override async Task OnInitializedAsync()
+	{
+		await FetchCategoriesAsync();
+	}
 
-        await ApiService.InitializeAsync(); 
-        adminData = await ApiService.GetAdminDataAsync();
-      }
-      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-      {
-        errorMessage = "Unauthorized: Please log in again.";
-        Navigation.NavigateTo("/login");
-      }
-      catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
-      {
-        errorMessage = "Forbidden: You don't have admin access.";
-      }
-      catch (Exception ex)
-      {
-        errorMessage = $"Failed to load admin data: {ex.Message}";
-      }
-      finally
-      {
-        _isLoading = false;
-        StateHasChanged();
-      }
-    }
-  }
+
+
+
+	private async Task FetchCategoriesAsync()
+	{
+		_isLoading = true;
+		try
+		{
+			var result = await CategoryService.GetAllCategoriesAsync
+			(
+			searchTerm: _searchTerm,
+			currentPage: _currentPage,
+			pageSize: _pageSize
+			);
+
+			_categories = result.Categories;
+			_totalItems = result.Pagination.TotalCount;
+			Console.WriteLine("[SEARCH TERM]: " + _searchTerm);
+			Console.WriteLine($"Fetched {_categories.Count} categories.");
+			Console.WriteLine($"Total Items: {_totalItems}");
+			Console.WriteLine($"Current Page: {_currentPage}");
+			Console.WriteLine($"Page Size: {_pageSize}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[ERROR FETCHING CATEGORIES]: {ex.Message}");
+			Snackbar.Add("Failed to fetch categories.", Severity.Error);
+		}
+		finally
+		{
+			_isLoading = false;
+			StateHasChanged();
+		}
+	}
+
+
+
+
+	private async Task OnSearchTextChanged(string value)
+	{
+		_cts?.Cancel();
+		_cts = new CancellationTokenSource();
+
+		try
+		{
+			await Task.Delay(500, _cts.Token);
+		}
+		catch (TaskCanceledException)
+		{
+			return;
+		}
+
+		if (_searchTerm == value) return;
+
+		_currentPage = 1;
+		_searchTerm = value;
+
+		await FetchCategoriesAsync();
+	}
+
+	private async Task OnPageChanged(int page)
+	{
+		if (_currentPage == page) return;
+		_currentPage = page;
+		await FetchCategoriesAsync();
+	}
+
+
+
+
+	private async Task OpenDialogAdd()
+	{
+		var options = new DialogOptions
+		{
+			CloseOnEscapeKey = true,
+			MaxWidth = MaxWidth.Medium,
+			FullWidth = true
+		};
+
+		var dialog = DialogService.Show<CategoryAdd>("Add New Category", options);
+		var result = await dialog.Result;
+
+		if (!result.Canceled && result.Data is CategoryCreateModel newCategory)
+		{
+			try
+			{
+				await CategoryService.AddNewCategory(newCategory);
+				Snackbar.Add("Category added successfully!", Severity.Success);
+				await FetchCategoriesAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[GAGAL ADD CATEGORY]: {ex.Message}");
+				Snackbar.Add("Failed to add category.", Severity.Error);
+			}
+		}
+	}
+
+
+
+
+
+	private async Task OpenDialogEdit(CategoryModel category)
+	{
+		var options = new DialogOptions
+		{
+			CloseOnEscapeKey = true,
+			MaxWidth = MaxWidth.Medium,
+			FullWidth = true
+		};
+
+		var parameters = new DialogParameters { ["ModelToEdit"] = category };
+
+		var dialog = DialogService.Show<CategoryEdit>("Edit Category", parameters, options);
+
+		var result = await dialog.Result;
+
+		if (!result.Canceled && result.Data is CategoryCreateModel updateCategory)
+		{
+			try
+			{
+				@* await CategoryService.UpdateCategory(updateCategory); *@
+				Snackbar.Add("Category updated successfully!", Severity.Success);
+				await FetchCategoriesAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"[GAGAL UPDATE CATEGORY]: {ex.Message}");
+				Snackbar.Add("Failed to update category.", Severity.Error);
+			}
+		}
+	}
+
+	private async Task ConfirmDelete(int categoryId, string categoryName)
+	{
+		bool? result = await DialogService.ShowMessageBox(
+		"Confirm Delete",
+		$"Are you sure you want to delete category '{categoryName}'?",
+		yesText: "Yes", cancelText: "No");
+
+		if (result == true)
+		{
+			await DeleteCategoryAsync(categoryId);
+		}
+	}
+
+	private async Task DeleteCategoryAsync(int categoryId)
+	{
+		try
+		{
+			await CategoryService.DeleteCategory(categoryId);
+			Snackbar.Add("Category deleted successfully!", Severity.Success);
+			await FetchCategoriesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"[ERROR DELETE CATEGORY]: {ex.Message}");
+			Snackbar.Add("Failed to delete category.", Severity.Error);
+		}
+	}
+
+
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			@* StateHasChanged(); *@
+			try
+			{
+				var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+				if (!isAuthenticated)
+				{
+					Navigation.NavigateTo("/login");
+					return;
+				}
+
+				await ApiService.InitializeAsync();
+				adminData = await ApiService.GetAdminDataAsync();
+			}
+			catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+			{
+				errorMessage = "Unauthorized: Please log in again.";
+				Navigation.NavigateTo("/login");
+			}
+			catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+			{
+				errorMessage = "Forbidden: You don't have admin access.";
+			}
+			catch (Exception ex)
+			{
+				errorMessage = $"Failed to load admin data: {ex.Message}";
+			}
+			finally
+			{
+				_isLoading = false;
+				StateHasChanged();
+			}
+		}
+	}
 }

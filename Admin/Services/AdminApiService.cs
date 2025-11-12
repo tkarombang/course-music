@@ -5,17 +5,20 @@ using MudBlazor;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using Blazored.LocalStorage;
+using Admin.DTOs.Category;
+using Admin.DTOs.Users;
+using Admin.Interfaces;
 
 
 namespace Admin.Services
 {
   public class AdminApiService
   {
-    private readonly HttpClient _httpClient;
-    private readonly IConfiguration _configuration;
-    private readonly ILocalStorageService _localStorage;
+    protected readonly HttpClient _httpClient;
+    protected readonly IConfiguration _configuration;
+    protected readonly ILocalStorageService _localStorage;
     private const string TokenKey = "authToken";
-
+    
     public AdminApiService(HttpClient httpClient, IConfiguration configuration, ILocalStorageService localStorage)
     {
       _httpClient = httpClient;
@@ -52,14 +55,7 @@ namespace Admin.Services
       return await response.Content.ReadAsStringAsync();
     }
 
-    public async Task<string> GetPagedUsersAsync(string queryParams)
-    {
-      await InitializeAsync();
-      var response = await _httpClient.GetAsync($"api/User/paged?{queryParams}");
-      Console.WriteLine($"Debug: GetPagedUsersAsync response status: {response.StatusCode}");
-      response.EnsureSuccessStatusCode();
-      return await response.Content.ReadAsStringAsync();
-    }
+
 
     public async Task<List<InvoiceModel>> GetDashboardInvoicesAsync()
     {
@@ -80,70 +76,6 @@ namespace Admin.Services
         throw;
       }
     }
-
-    public async Task<List<UserManModel>> GetAllUsersAsync()
-    {
-      await InitializeAsync();
-      try
-      {
-        var response = await _httpClient.GetFromJsonAsync<List<UserManModel>>("api/User");
-
-        if (response != null)
-        {
-          Console.WriteLine($"SUCCESS: Fetched {response.Count} Users");
-        }
-        return response ?? new List<UserManModel>();
-      }
-      catch (Exception err)
-      {
-        Console.WriteLine($"FATAL ERROR FETCHING USERS: {err.Message}");
-        throw;
-      }
-    }
-
-
-    public async Task UpdateUserAsync(UserManModel user)
-    {
-      await InitializeAsync();
-      Console.WriteLine("[USER ID]:" + user.Id);
-      var requestBody = new UserManModel
-      {
-        UserName = user.UserName,
-        Email = user.Email,
-        IsActive = user.IsActive,
-      };
-
-      try
-      {
-        var response = await _httpClient.PutAsJsonAsync($"api/User/{user.Id}", requestBody);
-        response.EnsureSuccessStatusCode();
-
-        Console.WriteLine($"SUKSES: USER ID {user.Id} UPDATED");
-      }
-      catch (HttpRequestException err)
-      {
-        Console.WriteLine($"ERROR UPDATE: {user.Id} - {err.Message}");
-        throw new Exception($"GAGAL UPDATE USER, KODE: {err.StatusCode}");
-      }
-    }
-
-    public async Task AddNewUserAsync(UserManModel newUser)
-    {
-      await InitializeAsync();
-      try
-      {
-        var response = await _httpClient.PostAsJsonAsync($"api/User", newUser);
-        response.EnsureSuccessStatusCode();
-
-        Console.WriteLine($"[SUKSES-ADD]: USER BARU");
-      }
-      catch (HttpRequestException err)
-      {
-        Console.WriteLine($"ERROR ADDING USER: {err.Message}");
-        throw new Exception($"GAGAL ADD USER BARU, KODE: {err.StatusCode}");
-      }
-    }
-
 
     public async Task<List<PayMetModel>> GetAllPaymentMethods()
     {
@@ -170,7 +102,6 @@ namespace Admin.Services
         throw;
       }
     }
-
 
     public async Task AddNewPaymentMethod(PayMetCreateModel newPayment)
     {await InitializeAsync();
@@ -200,7 +131,6 @@ namespace Admin.Services
         throw new Exception($"GAGAL ADD PAYMENT: KODE {err.StatusCode}");
       }
     }
-
 
     public async Task UpdatePaymentMethod(PayMetCreateModel updPayment)
     {
@@ -240,25 +170,6 @@ namespace Admin.Services
         Console.WriteLine($"ERROR UPDATING PAYMENT ID {updPayment.Id}:{err.Message}");
         throw new Exception($"GAGAL UPDATE PAYMENT: KODE {err.StatusCode}");
       }
-    }
-
-
-
-    public async Task<PagedResultModel<UserManModel>> GetUsersPagedAsync(
-      string searchTerm = null!,
-      int pageNumber = 1,
-      int pageSize = 10
-    )
-    {
-      await InitializeAsync();
-      var url = $"api/User/paged?pageNumber={pageNumber}&pageSize={pageSize}";
-      if (!string.IsNullOrWhiteSpace(searchTerm))
-      {
-        url += $"&searchTerm={searchTerm}";
-      }
-      var result = await _httpClient.GetFromJsonAsync<PagedResultModel<UserManModel>>(url);
-
-      return result ?? new PagedResultModel<UserManModel>();
     }
 
     // GET all courses
@@ -337,99 +248,11 @@ namespace Admin.Services
       response.EnsureSuccessStatusCode();
     }
 
-    public async Task<List<CategoryModel>> GetAllCategories()
-    {
-      await InitializeAsync();
-      try
-      {
-        var response = await _httpClient.GetFromJsonAsync<List<CategoryModel>>("api/Category");
-        return response ?? new List<CategoryModel>();
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"[ERROR FETCHING CATEGORIES]: {ex.Message}");
-        throw;
-      }
-    }
-
-    public async Task AddNewCategory(CategoryCreateModel model)
-    {
-      await InitializeAsync();
-      using var content = new MultipartFormDataContent();
-
-      content.Add(new StringContent(model.NameCategory ?? ""), "NameCategory");
-      content.Add(new StringContent(model.Deskripsi ?? ""), "Deskripsi");
-
-      if (model.ImageCategory != null)
-      {
-        var stream = model.ImageCategory.OpenReadStream(5_000_000);
-        var fileContent = new StreamContent(stream);
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(model.ImageCategory.ContentType);
-        content.Add(fileContent, "ImageCategory", model.ImageCategory.Name);
-      }
-
-      if (model.ImageBanner != null)
-      {
-        var stream = model.ImageBanner.OpenReadStream(5_000_000);
-        var fileContent = new StreamContent(stream);
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(model.ImageBanner.ContentType);
-        content.Add(fileContent, "ImageBanner", model.ImageBanner.Name);
-      }
-
-      var response = await _httpClient.PostAsync("api/Category", content);
-      response.EnsureSuccessStatusCode();
-    }
 
 
-    public async Task UpdateCategory(CategoryCreateModel model)
-    {
-      await InitializeAsync();
-      using var content = new MultipartFormDataContent();
 
-      // Tambahkan data teks
-      content.Add(new StringContent(model.IdCategory.ToString()), "IdCategory");
-      content.Add(new StringContent(model.NameCategory ?? ""), "NameCategory");
-      content.Add(new StringContent(model.Deskripsi ?? ""), "Deskripsi");
-      content.Add(new StringContent(model.CurrentBannerUrl ?? ""), "ImageBanner"); // Jika tidak diganti, tetap pakai existing
+    
 
-      // Tambahkan ImageCategory jika ada file baru
-      if (model.ImageCategory != null)
-      {
-        var stream = model.ImageCategory.OpenReadStream(maxAllowedSize: 5_000_000);
-        var fileContent = new StreamContent(stream);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImageCategory.ContentType);
-        content.Add(fileContent, "ImageCategory", model.ImageCategory.Name);
-      }
 
-      // Tambahkan ImageBanner jika ada file baru
-      if (model.ImageBanner != null)
-      {
-        var stream = model.ImageBanner.OpenReadStream(maxAllowedSize: 5_000_000);
-        var fileContent = new StreamContent(stream);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue(model.ImageBanner.ContentType);
-        content.Add(fileContent, "ImageBannerFile", model.ImageBanner.Name); // pastikan nama parameter sesuai controller
-      }
-
-      // Kirim request PUT ke API
-      var response = await _httpClient.PutAsync($"api/Category/{model.IdCategory}", content);
-      var responseBody = await response.Content.ReadAsStringAsync();
-      Console.WriteLine($"[API RESPONSE UPDATE CATEGORY]: {responseBody}");
-
-      response.EnsureSuccessStatusCode(); // akan throw exception jika status bukan 2xx
-    }
-    public async Task DeleteCategory(int categoryId)
-    {
-      await InitializeAsync();
-      try
-      {
-        var response = await _httpClient.DeleteAsync($"api/Category/{categoryId}");
-        response.EnsureSuccessStatusCode();
-      }
-      catch (HttpRequestException ex)
-      {
-        Console.WriteLine($"ERROR DELETE CATEGORY ID {categoryId}: {ex.Message}");
-        throw;
-      }
-    }
   }
 }

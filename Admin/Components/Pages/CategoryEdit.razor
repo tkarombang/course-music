@@ -1,214 +1,193 @@
 @using Admin.Models
-@using Admin.Services
+@using Admin.Services.CategoriesService
 @using MudBlazor
 @inject ISnackbar Snackbar
-@inject AdminApiService ApiService
+@inject CategoryApiService CategoryService
 
 
 <MudHidden Breakpoint="Breakpoint.SmAndDown">
-    <MudDialogContent>
+  <MudDialogContent>
     <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
-        <MudForm @ref="_form" Model="_editModel">
-            <!-- Nama Category -->
-            <MudTextField Label="Category Name"
-                          @bind-Value="_editModel.NameCategory"
-                          Variant="Variant.Outlined"
-                          For="@(() => _editModel.NameCategory)"
-                          Class="ml-5 pa-5"
-                          Style="width: 700px;" />
+      <MudForm @ref="_form" Model="_editModel">
+        <!-- Nama Category -->
+        <MudTextField Label="Category Name" @bind-Value="_editModel.NameCategory" Variant="Variant.Outlined"
+          For="@(() => _editModel.NameCategory)" Class="ml-5 pa-5" Style="width: 700px;" />
 
-            <!-- Deskripsi -->
-            <MudTextField Label="Deskripsi"
-                          @bind-Value="_editModel.Deskripsi"
-                          Variant="Variant.Outlined"
-                          For="@(() => _editModel.Deskripsi)"
-                          Class="ml-5 pa-5"
-                          Style="width: 700px; margin-top:10px;"
-                          Lines="3"
-                          TextAlign="TextAlign.Left"
-                          />
+        <!-- Deskripsi -->
+        <MudTextField Label="Deskripsi" @bind-Value="_editModel.Deskripsi" Variant="Variant.Outlined"
+          For="@(() => _editModel.Deskripsi)" Class="ml-5 pa-5" Style="width: 700px; margin-top:10px;" Lines="3"
+          TextAlign="TextAlign.Left" />
 
-            <!-- Image Category -->
-            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2 ml-5 pa-5">Image Category</MudText>
+        <!-- Image Category -->
+        <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2 ml-5 pa-5">Image Category</MudText>
 
-            @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCategory))
-            {
-                <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageCategory}")"
-                          Alt="Current Image"
-                          Class="ml-5 pa-5"
-                          Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
-            }
+        @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCategory))
+        {
+          <MudImage Src="@ModelToEdit.ImageCategory" Alt="Current Image"
+            Class="ml-5 pa-5" Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+        }
 
-            <InputFile OnChange="OnInputFileChangeCategory" Class="ml-5 pa-5"/>
+        <InputFile OnChange="OnInputFileChangeCategory" Class="ml-5 pa-5" />
 
-            @if (!string.IsNullOrEmpty(_imagePreviewCategory))
-            {
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1 ml-5 pa-5">Preview New Image:</MudText>
-                <img src="@_imagePreviewCategory" Class="ml-5 pa-5" style="max-width:150px; max-height:150px;" />
-            }
+        @if (!string.IsNullOrEmpty(_imagePreviewCategory))
+        {
+          <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1 ml-5 pa-5">Preview New Image:</MudText>
+          <img src="@_imagePreviewCategory" Class="ml-5 pa-5" style="max-width:150px; max-height:150px;" />
+        }
 
-            <!-- Image Banner -->
-            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2 ml-5 pa-5">Image Banner</MudText>
+        <!-- Image Banner -->
+        <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2 ml-5 pa-5">Image Banner</MudText>
 
-            @if (!string.IsNullOrEmpty(ModelToEdit?.ImageBanner))
-            {
-                <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageBanner}")"
-                          Alt="Current Banner"
-                          Class="ml-5 pa-5"
-                          Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
-            }
+        @if (!string.IsNullOrEmpty(ModelToEdit?.ImageBanner))
+        {
+          <MudImage Src="@ModelToEdit.ImageBanner" Alt="Current Banner"
+            Class="ml-5 pa-5" Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+        }
 
-            <InputFile OnChange="OnInputFileChangeBanner" Class="ml-5 pa-5"/>
+        <InputFile OnChange="OnInputFileChangeBanner" Class="ml-5 pa-5" />
 
-            @if (!string.IsNullOrEmpty(_imagePreviewBanner))
-            {
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1 ml-5 pa-5">Preview New Banner:</MudText>
-                <img src="@_imagePreviewBanner" Class="ml-5 pa-5" style="max-width:150px; max-height:150px;" />
-            }
+        @if (!string.IsNullOrEmpty(_imagePreviewBanner))
+        {
+          <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1 ml-5 pa-5">Preview New Banner:</MudText>
+          <img src="@_imagePreviewBanner" Class="ml-5 pa-5" style="max-width:150px; max-height:150px;" />
+        }
 
-            <!-- Tombol Aksi -->
-            <MudStack Row="true" Spacing="2" Class="mt-4">
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
-                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
-            </MudStack>
-        </MudForm>
+        <!-- Tombol Aksi -->
+        <MudStack Row="true" Spacing="2" Class="mt-4">
+          <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
+          <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        </MudStack>
+      </MudForm>
     </MudPaper>
-</MudDialogContent>
+  </MudDialogContent>
 </MudHidden>
 
 <MudHidden Breakpoint="Breakpoint.MdAndUp">
-    <MudDialogContent>
+  <MudDialogContent>
     <MudPaper Class="pa-4" Elevation="0" Style="background-color:white;">
-        <MudForm @ref="_form" Model="_editModel">
-            <!-- Nama Category -->
-            <MudTextField Label="Category Name"
-                          @bind-Value="_editModel.NameCategory"
-                          Variant="Variant.Outlined"
-                          For="@(() => _editModel.NameCategory)"
-                          Style="width: 300px;" />
+      <MudForm @ref="_form" Model="_editModel">
+        <!-- Nama Category -->
+        <MudTextField Label="Category Name" @bind-Value="_editModel.NameCategory" Variant="Variant.Outlined"
+          For="@(() => _editModel.NameCategory)" Style="width: 300px;" />
 
-            <!-- Deskripsi -->
-            <MudTextField Label="Deskripsi"
-                          @bind-Value="_editModel.Deskripsi"
-                          Variant="Variant.Outlined"
-                          For="@(() => _editModel.Deskripsi)"
-                          Style="width: 300px; margin-top:10px;"
-                          Lines="3"
-                          TextAlign="TextAlign.Left"
-                          />
+        <!-- Deskripsi -->
+        <MudTextField Label="Deskripsi" @bind-Value="_editModel.Deskripsi" Variant="Variant.Outlined"
+          For="@(() => _editModel.Deskripsi)" Style="width: 300px; margin-top:10px;" Lines="3"
+          TextAlign="TextAlign.Left" />
 
-            <!-- Image Category -->
-            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image Category</MudText>
+        <!-- Image Category -->
+        <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image Category</MudText>
 
-            @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCategory))
-            {
-                <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageCategory}")"
-                          Alt="Current Image"
-                          Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
-            }
+        @if (!string.IsNullOrEmpty(ModelToEdit?.ImageCategory))
+        {
+          <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageCategory}")" Alt="Current Image"
+            Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+        }
 
-            <InputFile OnChange="OnInputFileChangeCategory"/>
+        <InputFile OnChange="OnInputFileChangeCategory" />
 
-            @if (!string.IsNullOrEmpty(_imagePreviewCategory))
-            {
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview New Image:</MudText>
-                <img src="@_imagePreviewCategory" style="max-width:150px; max-height:150px;" />
-            }
+        @if (!string.IsNullOrEmpty(_imagePreviewCategory))
+        {
+          <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview New Image:</MudText>
+          <img src="@_imagePreviewCategory" style="max-width:150px; max-height:150px;" />
+        }
 
-            <!-- Image Banner -->
-            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image Banner</MudText>
+        <!-- Image Banner -->
+        <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Image Banner</MudText>
 
-            @if (!string.IsNullOrEmpty(ModelToEdit?.ImageBanner))
-            {
-                <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageBanner}")"
-                          Alt="Current Banner"
-                          Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
-            }
+        @if (!string.IsNullOrEmpty(ModelToEdit?.ImageBanner))
+        {
+          <MudImage Src="@($"http://localhost:5058/img/list_category/{ModelToEdit.ImageBanner}")" Alt="Current Banner"
+            Style="max-width:150px; max-height:150px; margin-bottom:10px;" />
+        }
 
-            <InputFile OnChange="OnInputFileChangeBanner"/>
+        <InputFile OnChange="OnInputFileChangeBanner" />
 
-            @if (!string.IsNullOrEmpty(_imagePreviewBanner))
-            {
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview New Banner:</MudText>
-                <img src="@_imagePreviewBanner" style="max-width:150px; max-height:150px;" />
-            }
+        @if (!string.IsNullOrEmpty(_imagePreviewBanner))
+        {
+          <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Preview New Banner:</MudText>
+          <img src="@_imagePreviewBanner" style="max-width:150px; max-height:150px;" />
+        }
 
-            <!-- Tombol Aksi -->
-            <MudStack Row="true" Spacing="2" Class="mt-4">
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
-                <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
-            </MudStack>
-        </MudForm>
+        <!-- Tombol Aksi -->
+        <MudStack Row="true" Spacing="2" Class="mt-4">
+          <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="HandleSubmit">Save</MudButton>
+          <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        </MudStack>
+      </MudForm>
     </MudPaper>
-</MudDialogContent>
+  </MudDialogContent>
 </MudHidden>
 
 
 @code {
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public CategoryModel? ModelToEdit { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public CategoryModel? ModelToEdit { get; set; }
 
-    private CategoryCreateModel _editModel = new();
-    private MudForm? _form;
+  private CategoryCreateModel _editModel = new();
+  private MudForm? _form;
 
-    private IBrowserFile? _selectedFileCategory;
-    private string? _imagePreviewCategory;
+  private IBrowserFile? _selectedFileCategory;
+  private string? _imagePreviewCategory;
 
-    private IBrowserFile? _selectedFileBanner;
-    private string? _imagePreviewBanner;
+  private IBrowserFile? _selectedFileBanner;
+  private string? _imagePreviewBanner;
 
-    protected override void OnInitialized()
+  protected override void OnInitialized()
+  {
+    if (ModelToEdit != null)
     {
-        if (ModelToEdit != null)
-        {
-            _editModel = new CategoryCreateModel
-            {
-                IdCategory = ModelToEdit.IdCategory,
-                NameCategory = ModelToEdit.NameCategory,
-                Deskripsi = ModelToEdit.Deskripsi,
-                CurrentImageUrl = ModelToEdit.ImageCategory,
-                ImageCategory = null,
-                ImageBanner = null,
-                CurrentBannerUrl = ModelToEdit.ImageBanner
-            };
-        }
+      _editModel = new CategoryCreateModel
+      {
+        IdCategory = ModelToEdit.IdCategory,
+        NameCategory = ModelToEdit.NameCategory,
+        Deskripsi = ModelToEdit.Deskripsi,
+        CurrentImageUrl = ModelToEdit.ImageCategory,
+        ImageCategory = null,
+        ImageBanner = null,
+        CurrentBannerUrl = ModelToEdit.ImageBanner
+      };
     }
+  }
 
-    private async Task OnInputFileChangeCategory(InputFileChangeEventArgs e)
+  private async Task OnInputFileChangeCategory(InputFileChangeEventArgs e)
+  {
+    _selectedFileCategory = e.File;
+    _editModel.ImageCategory = _selectedFileCategory;
+
+    using var stream = _selectedFileCategory.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+    using var ms = new MemoryStream();
+    await stream.CopyToAsync(ms);
+
+    _imagePreviewCategory = $"data:{_selectedFileCategory.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+
+  }
+
+  private async Task OnInputFileChangeBanner(InputFileChangeEventArgs e)
+  {
+    _selectedFileBanner = e.File;
+    _editModel.ImageBanner = _selectedFileBanner;
+
+    using var stream = _selectedFileBanner.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+    using var ms = new MemoryStream();
+    await stream.CopyToAsync(ms);
+    
+    _imagePreviewBanner = $"data:{_selectedFileBanner.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+  }
+
+  private async Task HandleSubmit()
+  {
+    try
     {
-        _selectedFileCategory = e.File;
-        _editModel.ImageCategory = _selectedFileCategory;
-
-        using var stream = _selectedFileCategory.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        _imagePreviewCategory = $"data:{_selectedFileCategory.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+      await CategoryService.UpdateCategory(_editModel);
+      Snackbar.Add("Category updated successfully!", Severity.Success);
+      MudDialog.Close(DialogResult.Ok(_editModel));
     }
-
-    private async Task OnInputFileChangeBanner(InputFileChangeEventArgs e)
+    catch (Exception ex)
     {
-        _selectedFileBanner = e.File;
-        _editModel.ImageBanner = _selectedFileBanner;
-
-        using var stream = _selectedFileBanner.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        _imagePreviewBanner = $"data:{_selectedFileBanner.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+      Snackbar.Add($"Failed to update category: {ex.Message}", Severity.Error);
     }
+  }
 
-    private async Task HandleSubmit()
-    {
-        try
-        {
-            await ApiService.UpdateCategory(_editModel);
-            Snackbar.Add("Category updated successfully!", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(_editModel));
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to update category: {ex.Message}", Severity.Error);
-        }
-    }
-
-    private void Cancel() => MudDialog.Cancel();
+  private void Cancel() => MudDialog.Cancel();
 }

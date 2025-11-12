@@ -1,12 +1,15 @@
 ﻿@page "/home"
+@using Admin.Interfaces
 @using Admin.Models
 @using Admin.Services
+@using Admin.Services.UsersService
 @layout Layout.MainLayout
 
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject IAdminAuthService AuthService
-@inject AdminApiService ApiService;
+@inject IUsersApiInterface IUserService;
+@inject AdminApiService ApiService
 
 <MudMainContent Class="m-auto h-100">
   <MudContainer Class="mt-6">
@@ -177,7 +180,7 @@
   {
     try
     {
-      activeUser = await ApiService.GetAllUsersAsync();
+      activeUser = await IUserService.GetAllUsersAsync();
     }
     catch (Exception err)
     {

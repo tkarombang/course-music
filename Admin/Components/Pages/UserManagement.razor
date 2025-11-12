@@ -1,6 +1,8 @@
 @page "/usermanagement"
+@using Admin.Interfaces
 @using Admin.Models
 @using Admin.Services
+@using Admin.Services.UsersService
 @rendermode InteractiveServer
 @layout Layout.MainLayout
 
@@ -8,7 +10,10 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IAdminAuthService AuthService
+@inject IUsersApiInterface IUserService
 @inject AdminApiService ApiService
+
+<PageTitle>User Management</PageTitle>
 
 <MudMainContent Class="m-auto h-100">
   <MudContainer Class="mt-6">
@@ -99,16 +104,18 @@
 
 @code {
   private List<UserManModel> _users = new();
-  private bool hover = true;
+  private readonly bool hover = true;
   private bool _isLoading = true;
-  private string _searchText = string.Empty;
-
-  private string adminData = string.Empty;
+  private readonly string _searchText = string.Empty;
   private string errorMessage = string.Empty;
   private int _currentPage = 1;
-  private int _pageSize = 10;
+  private readonly int _pageSize = 10;
   private int _totalItems = 0;
   private string _searchTerm = string.Empty;
+  private CancellationTokenSource _cts;
+
+
+
 
   protected override async Task OnInitializedAsync()
   {
@@ -119,18 +126,20 @@
   private async Task FetchUsersPagedAsync()
   {
     _isLoading = true;
-    StateHasChanged();
-
     try
     {
-      var result = await ApiService.GetUsersPagedAsync(
+      var result = await IUserService.GetUsersPagedAsync(
       searchTerm: _searchTerm,
-      pageNumber: _currentPage,
+      pagedNumber: _currentPage,
       pageSize: _pageSize
       );
 
-      _users = result.Items;
-      _totalItems = result.TotalCount;
+      _users = result.Users;
+      _totalItems = result.Pagination.TotalCount;
+      Console.WriteLine($"Fetched {_users.Count} categories.");
+      Console.WriteLine($"Total Items: {_totalItems}");
+      Console.WriteLine($"Current Page: {_currentPage}");
+      Console.WriteLine($"Page Size: {_pageSize}");
     }
     catch (Exception ex)
     {
@@ -145,6 +154,18 @@
 
   private async Task OnSearchTextChanged(string value)
   {
+    _cts?.Cancel();
+    _cts = new CancellationTokenSource();
+
+    try
+    {
+      await Task.Delay(200, _cts.Token);
+    }
+    catch (TaskCanceledException)
+    {
+      return;
+    }
+
     if (_searchTerm == value) return;
 
     _currentPage = 1;
@@ -169,7 +190,7 @@
     try
     {
       _isLoading = true;
-      _users = await ApiService.GetAllUsersAsync();
+      _users = await IUserService.GetAllUsersAsync();
     }
     catch (Exception err)
     {
@@ -189,14 +210,16 @@
     var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
     var parameters = new DialogParameters { ["UserManEdit"] = userManEdit };
 
-    var dialog = DialogService.Show<UserManagementEdit>("Edit User", parameters, options);
+    var dialog = await DialogService.ShowAsync<UserManagementEdit>("Edit User", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled && result.Data is UserManModel updatedUser)
+
+    if (result is { Canceled: false, Data: UserManModel updatedUser })
+
     {
       try
       {
-        await ApiService.UpdateUserAsync(updatedUser);
+        await IUserService.UpdateUserAsync(updatedUser);
         await FetchUserAsync();
         Snackbar.Add("UPDATE BERHASIL!", Severity.Success);
       }
@@ -210,14 +233,16 @@
   private async Task OpenDialogAdd()
   {
     var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-    var dialog = DialogService.Show<UserManagementAdd>("Add New User", options);
+    var dialog = await DialogService.ShowAsync<UserManagementAdd>("Add New User", options);
     var result = await dialog.Result;
 
-    if (!result.Canceled && result.Data is UserManModel newUser)
+
+    if (result is { Canceled: false, Data: UserManModel newUser })
+
     {
       try
       {
-        await ApiService.AddNewUserAsync(newUser);
+        await IUserService.AddNewUserAsync(newUser);
         Snackbar.Add("BERHASIL TAMBAH USER!", Severity.Success);
         await FetchUserAsync();
       }
@@ -241,8 +266,7 @@
           return;
         }
 
-        await ApiService.InitializeAsync(); 
-        adminData = await ApiService.GetAdminDataAsync();
+        await ApiService.InitializeAsync();
       }
       catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
       {
