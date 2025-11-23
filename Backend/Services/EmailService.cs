@@ -3,10 +3,11 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
+using Backend.Interface;
 
 namespace Backend.Services
 {
-  public class EmailService : IEmailService
+  public class EmailService : IEmailInterface
   {
     private readonly ILogger<EmailService> _logger;
     private readonly EmailSettings _emailSettings;

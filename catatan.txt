@@ -1,0 +1,91 @@
+karena try-catch terlalu berulang di controller dan di service untuk itu saya perlu membuat Global Exception
+langkah2 Membuat Global Exception Middleware
+1. bual Global Exception Middleware
+2. Rapikan 1 Controller (UserController)
+UserController & UsersService -> ✔ SUDAH SELESAI
+AuthController & AuthService ->  
+CategoryController
+CourseController
+CheckoutController
+InvoiceController
+PaymentController
+PaymentMethodController
+- Hapus try-catch yang berulang
+- fokus handling error di service
+- pastikan response tetap clean
+3. Rapikan Service UserService
+- pastikan throw exception yang benar
+- logging rapi
+- tidak return null sembarangan
+4. Coba test endpoint
+- pastikan semua "Unhandle" error masuk ke middleware
+5. Lanjut ke controller lain 
+
+## PENGUJIAN
+TEST 1 - GET USER BY ID
+expected result =
+{
+  "errorCode": "404",
+  "errorMessage": "User tidak ditemukan.",
+  "traceId": "B4F1C9A4F9E34C0C" 
+}
+
+
+TEST 2 - POST CreateUser (Email Sudah diambil)
+expected resutl = 
+{
+  "username": "abc",
+  "email": "email_yang_sudah_ada@gmail.com",
+  "password": "123456"
+}
+
+TEST 3 - DB ERROR (Simulasikan manual)
+GET /api/user
+expected result=
+{
+  "errorCode": "500",
+  "errorMessage": "Terjadi kesalahan pada database.",
+  "traceId": "9AF0D8CC09B74B2B"
+}
+
+
+TEST 4 - BadRequest dari input invalid
+{
+  "username": "",
+  "email": "",
+  "password": ""
+}
+
+expected result = 
+{
+  "errorCode": "400",
+  "errorMessage": "Input tidak valid.",
+  "traceId": "A17FBB19A73A4925"
+}
+
+
+TEST 5 - Coba lempar exception manual di service
+untuk memastika 100% middleware bekerja, tambahkan sementara
+throw new Exception("Test exception middleware");
+
+Expected result = 
+{
+  "errorCode": "500",
+  "errorMessage": "Unhandled server error.",
+  "traceId": "C8D2FDB8996A4F1A"
+}
+
+
+
+
+
+JWT + REFRESH TOKEN
+- RefreshToken model
+- RefreshToken table
+- AuthService dengan refresh token
+- Endpoint login (mengembalikan 2 token)
+- Endpoint refresh
+- Endpoint logout
+- Middleware refresh flow
+- Repository untuk refresh token
+- Security best practice (rotating refresh token)

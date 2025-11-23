@@ -154,6 +154,10 @@
 			Console.WriteLine($"Total Items: {_totalItems}");
 			Console.WriteLine($"Current Page: {_currentPage}");
 			Console.WriteLine($"Page Size: {_pageSize}");
+			foreach(var kategori in _categories.Take(2))
+			{
+				Console.WriteLine($"GAMBAR: {kategori.ImageCategory}");
+			}
 		}
 		catch (Exception ex)
 		{

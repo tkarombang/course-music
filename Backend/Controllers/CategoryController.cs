@@ -21,56 +21,41 @@ namespace Backend.Controllers
 			_logger = logger;
 		}
 
-		/*
-       // ✅ GET: api/Category/{categoryName}
-       [HttpGet("{categoryName}")]
-       [Authorize(Roles = "Admin, User")]
-       public async Task<ActionResult<CategoryWithCoursesDto>> GetCategoryWithCourses(string categoryName)
-       {
-         try
-         {
-           var category = await _context.Categories
-               .Include(c => c.Courses)
-               .FirstOrDefaultAsync(c => c.NameCategory.ToLower() == categoryName.ToLower());
 
-           if (category == null)
-             return NotFound(new { message = $"Kategori '{categoryName}' tidak ditemukan." });
 
-           var categoryDto = _mapper.Map<CategoryWithCoursesDto>(category);
-           return Ok(categoryDto);
-         }
-         catch (Exception ex)
-         {
-           return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil data kategori.", error = ex.Message });
-         }
-       }
 
-       // ✅ GET: api/Category
-       [HttpGet]
-       [Authorize(Roles = "Admin, User")]
-       public async Task<IActionResult> GetAllCategories()
-       {
-         try
-         {
-           var categories = await _context.Categories
-               .Select(c => new
-               {
-                 c.IdCategory,
-                 c.NameCategory,
-                 c.Deskripsi,
-                 c.ImageCategory,
-                 c.ImageBanner
-               })
-               .ToListAsync();
-
-           return Ok(categories);
-         }
-         catch (Exception ex)
-         {
-           return StatusCode(500, new { message = "Terjadi kesalahan saat mengambil semua kategori.", error = ex.Message });
-         }
-       }
-   */
+		// ✅ POST: api/Category
+		[HttpPost]
+		[Authorize(Roles = "Admin, User")]
+		[Consumes("multipart/form-data")]
+		public async Task<IActionResult> CreateCategory([FromForm] CategoryCreateDto dto)
+		{
+			_logger.LogInformation("[POST] api/Category/ DIPANGGIL");
+			try
+			{
+				if (!ModelState.IsValid)
+				{
+					_logger.LogWarning("[POST] INPUTAN INVALID {dto}", dto);
+					return BadRequest(ModelState);
+				}
+				
+				var result = await _categoryService.CreateAsync(dto);
+				return CreatedAtAction(nameof(GetCategoriesPagedAsync), new { id = result.IdCategory }, new
+				{
+					message = "KATEGORI BERHASIL DI BUAT",
+					data = result
+				});
+			}
+			catch (InvalidOperationException ex)
+			{
+				_logger.LogError("[ERR POST] PEMANGGILAN INPUT GAGAL");
+				return BadRequest(new { message = ex.Message });
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, new { message = "Gagal membuat kategori.", error = ex.Message });
+			}
+		}
 
 
 
@@ -78,22 +63,60 @@ namespace Backend.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> GetByIdCategories(int id)
 		{
-			var result = await _categoryService.GetByIdAsync(id);
-			if (result == null) return NotFound(new { message = "KATEGORI TIDAK DITEMUKAN" });
+			_logger.LogInformation("[GET-BY-ID] api/category/{id} DIPANGGIL", id);
+			try
+			{
+				var result = await _categoryService.GetByIdAsync(id);
+				if (result == null)
+				{
+					_logger.LogWarning("[GETID] CATEGORY ID {id} TIDAK ADA", id);
+					return NotFound(new { message = "KATEGORI TIDAK DITEMUKAN" });
+				}
 
-			return Ok(new { data = result });
+				return Ok(new { data = result });
+			}
+			catch (Exception err)
+			{
+				_logger.LogError("ERROR GET CATEGORY BY ID {id}", id);
+				return StatusCode(500, new
+				{
+					message = "ERROR GET CATEGORY BY ID",
+					error = err.Message
+				});
+			}
 		}
+
+
+
+
 
 
 		[HttpGet("by-name/{name}")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> GetByNameCategories(string name)
 		{
-			var result = await _categoryService.GetByNameAsync(name);
-			if (result == null) return NotFound(new { message = "NAMA KATEGORI TIDAK DITEMUKAN" });
+			_logger.LogInformation("[GET by NAME] api/category/{name} DIPANGGIL", name);
+			try
+			{
+				var result = await _categoryService.GetByNameAsync(name);
+				if (result == null)
+				{
+					_logger.LogWarning("NAMA KATEGORI TIDAK DITEMUKAN DENGAN NAMA: {name}", name);
+					return NotFound(new { message = "NAMA KATEGORI TIDAK DITEMUKAN" });
+				}
 
-			return Ok(new { date = result });
+				return Ok(new { date = result });
+			}
+			catch (Exception err)
+			{
+				_logger.LogError(err, "TERJADI KESALAHAN NAMA KATEGORI");
+				return StatusCode(500, new { message = "KESALAHAN SERVER" });
+			}
 		}
+
+
+
+
 
 
 
@@ -104,6 +127,7 @@ namespace Backend.Controllers
 			[FromQuery] int pageNumber = 1,
 			[FromQuery] int pageSize = 5)
 		{
+			_logger.LogInformation("[GET PAGE] /api/category/paged?=... DIPANGGIL");
 			try
 			{
 				var result = await _categoryService.GetCategPagedAsync(searchTerm!, pageNumber, pageSize);
@@ -133,32 +157,12 @@ namespace Backend.Controllers
 
 
 
-		// ✅ POST: api/Category
-		[HttpPost]
-		[Authorize(Roles = "Admin, User")]
-		[Consumes("multipart/form-data")]
-		public async Task<IActionResult> CreateCategory([FromForm] CategoryCreateDto dto)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-				var result = await _categoryService.CreateAsync(dto);
-				return CreatedAtAction(nameof(GetCategoriesPagedAsync), new { id = result.IdCategory }, new
-				{
-					message = "KATEGORI BERHASIL DI BUAT",
-					data = result
-				});
-			}
-			catch (InvalidOperationException ex)
-			{
-				return BadRequest(new { message = ex.Message });
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, new { message = "Gagal membuat kategori.", error = ex.Message });
-			}
-		}
+
+
+
+
+
 
 		[HttpPut("{id}")]
 		[Authorize(Roles = "Admin, User")]
@@ -186,6 +190,12 @@ namespace Backend.Controllers
 				return StatusCode(500, new { message = "GAGAL MEMPERBAHARUI", error = err.Message });
 			}
 		}
+
+
+
+
+
+
 
 		[HttpDelete("{id}")]
 		[Authorize(Roles = "Admin")]

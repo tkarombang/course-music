@@ -59,7 +59,8 @@ namespace Backend.Mappings
 			// ================================
 			CreateMap<UserModel, UserDto>();
 			CreateMap<CreateUserDto, UserModel>();
-			CreateMap<UpdateUserDto, UserModel>();
+			CreateMap<UpdateUserDto, UserModel>()
+				.ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
 			// ================================
 			// 🔹 MAPPING UNTUK PAYMENT

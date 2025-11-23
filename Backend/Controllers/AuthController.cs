@@ -7,21 +7,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using Azure.Messaging;
+using Backend.Interface;
 
 [Route("/api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
-  private readonly IAuthService _authService;
+  private readonly IAuthInterface _authService;
   private readonly AppDbContext _context;
-  private readonly IEmailService _emailService;
-  // public AuthController(IAuthService authService)
-  public AuthController(AppDbContext context, IEmailService emailService, IAuthService authService)
+  private readonly IEmailInterface _emailService;
+
+  public AuthController(AppDbContext context, IEmailInterface emailService, IAuthInterface authService)
   {
     _authService = authService;
     _context = context;
     _emailService = emailService;
   }
+
+
+
 
   [HttpPost("register")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -45,6 +49,8 @@ public class AuthController : ControllerBase
   }
 
 
+
+
   [HttpPost("login")]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -63,6 +69,9 @@ public class AuthController : ControllerBase
 
     return Ok(new { Token = token });
   }
+
+
+
 
 
   [HttpPost("forgot-password")]
@@ -96,6 +105,9 @@ public class AuthController : ControllerBase
 
 
 
+
+
+
   [HttpPost("reset-password")]
   public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
   {
@@ -123,6 +135,6 @@ public class AuthController : ControllerBase
   }
 
 
-  
+
 
 }

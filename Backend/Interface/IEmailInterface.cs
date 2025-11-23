@@ -1,8 +1,7 @@
-namespace Backend.Services
+namespace Backend.Interface
 {
-  public interface IEmailService
+  public interface IEmailInterface
   {
     Task SendPasswordResetLink(string toEmail, string resetToken, string frontendLink);
-    
   }
 }

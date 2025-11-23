@@ -1,4 +1,5 @@
 using AutoMapper;
+using Backend.Controllers;
 using Backend.Data;
 using Backend.DTOs.Category;
 using Backend.Interface;
@@ -13,13 +14,19 @@ namespace Backend.Services
     private readonly AppDbContext _context;
     private readonly IFileUploadInterface _uploadService;
     private readonly IMapper _mapper;
+    private readonly ILogger<CategoryService> _logger;
 
-    public CategoryService(AppDbContext context, IFileUploadInterface uploadInterface, IMapper mapper)
+
+    public CategoryService(AppDbContext context, IFileUploadInterface uploadInterface, IMapper mapper, ILogger<CategoryService> logger)
     {
       _context = context;
       _uploadService = uploadInterface;
       _mapper = mapper;
+      _logger = logger;
     }
+
+
+
 
     public async Task<CategoryDto> CreateAsync(CategoryCreateDto dto)
     {
@@ -59,6 +66,14 @@ namespace Backend.Services
       }
     }
 
+
+
+
+
+
+
+
+
     public async Task<CategoryDto> GetByIdAsync(int id)
     {
       var category = await _context.Categories
@@ -72,6 +87,8 @@ namespace Backend.Services
       return dto;
     }
 
+
+
     public async Task<CategoryDto> GetByNameAsync(string nama)
     {
       var category = await _context.Categories
@@ -84,6 +101,19 @@ namespace Backend.Services
       dto.CountCourse = category.Courses?.Count ?? 0;
       return dto;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public async Task<CategoryListDto> GetCategPagedAsync(
       string? searchTerm = null,
@@ -130,6 +160,11 @@ namespace Backend.Services
         throw;
       }
     }
+
+
+
+
+
 
     public async Task<CategoryDto?> UpdateCategoryAsync(int id, CategoryUpdateDto dto)
     {
@@ -181,6 +216,10 @@ namespace Backend.Services
         throw;
       }
     }
+
+
+
+
 
     public async Task<bool> DeleteCategoryAsync(int id)
     {

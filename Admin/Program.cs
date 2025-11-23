@@ -8,6 +8,7 @@ using System.Text;
 using Admin.Interfaces;
 using Admin.Services.UsersService;
 using Admin.Services.CategoriesService;
+using Admin.Services.CourseService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,7 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
 builder.Services.AddScoped<IUsersApiInterface, UsersApiService>();
 builder.Services.AddScoped<CategoryApiService>();
+builder.Services.AddScoped<CoursesApiService>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddMudServices();
 builder.Services.AddHttpContextAccessor();
