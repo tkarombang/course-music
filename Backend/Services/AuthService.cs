@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Backend.Data;
 using Backend.DTOs.Auth;
@@ -7,8 +8,6 @@ using Backend.DTOs.ForgotPassword;
 using Backend.Exceptions;
 using Backend.Interface;
 using Backend.Models;
-using Backend.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -18,13 +17,16 @@ public class AuthService : IAuthInterface
   private readonly IConfiguration _configuration;
   private readonly ILogger<AuthService> _logger;
   private readonly IEmailInterface _emailService;
+  private readonly IHttpContextAccessor _httpContextAccessor;
 
-  public AuthService(AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger, IEmailInterface emailService)
+  public AuthService(AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger, IEmailInterface emailService, IHttpContextAccessor
+  httpContextAccessor)
   {
     _context = context;
     _configuration = configuration;
     _logger = logger;
     _emailService = emailService;
+    _httpContextAccessor = httpContextAccessor;
   }
 
 
@@ -54,21 +56,31 @@ public class AuthService : IAuthInterface
 
 
 
-  public async Task<string> LoginAsync(LoginDto dto)
+  public async Task<(string AccessToken, string RefreshToken)> LoginAsync(LoginDto dto, string? ipAddress)
   {
+    var user = await _context.Users
+      .Include(u => u.RefreshTokens)
+      .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+    // var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+
     if (user == null)
-    {
-      return null!;
-    }
+      throw new NotFoundException("EMAIL TIDAK DITEMUKAN");
 
     bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
     if (!isPasswordValid)
-    {
-      return null!;
-    }
-    return GenerateJwtToken(user);
+      throw new BadRequestException("PASSWORD TIDAK VALID");
+
+    // generate access token
+    var accessToken = GenerateJwtToken(user);
+
+    // generate & save refresh token
+    var refreshToken = await CreateRefreshTokenAsync(user, ipAddress);
+
+    // set cookie httpOnly
+    SetRefreshTokenCookie(refreshToken.Token!);
+
+    return (accessToken, refreshToken.Token!);
   }
 
 
@@ -95,11 +107,16 @@ public class AuthService : IAuthInterface
     await _context.SaveChangesAsync();
     var frontendUrl = "http://localhost:5161";
 
-    await _emailService.SendPasswordResetLink(user.Email, resetToken, frontendUrl);
+    await _emailService.SendPasswordResetLink(user.Email!, resetToken, frontendUrl);
 
     return resetToken;
-
   }
+
+
+
+
+
+
 
 
 
@@ -111,7 +128,7 @@ public class AuthService : IAuthInterface
     var claims = new List<Claim>
     {
       new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-      new Claim(ClaimTypes.Email, user.Email),
+      new Claim(ClaimTypes.Email, user.Email!),
       new Claim(ClaimTypes.Role, user.Role)
     };
 
@@ -132,5 +149,45 @@ public class AuthService : IAuthInterface
 
     return new JwtSecurityTokenHandler().WriteToken(token);
   }
+
+
+
+  private static string GenerateRefreshToken()
+  {
+    return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+  }
+
+  private async Task<RefreshTokenModel> CreateRefreshTokenAsync(UserModel user, string? ipAddress)
+  {
+    var refreshToken = new RefreshTokenModel
+    {
+      Token = GenerateRefreshToken(),
+      UserId = user.Id,
+      CreateAt = DateTime.UtcNow,
+      ExpiredAt = DateTime.UtcNow.AddDays(7),
+      CreatedByIp = ipAddress
+    };
+
+    _context.RefreshTokens.Add(refreshToken);
+    await _context.SaveChangesAsync();
+
+    return refreshToken;
+  }
+
+  private void SetRefreshTokenCookie(string token)
+  {
+    var options = new CookieOptions
+    {
+      HttpOnly = true,
+      Secure = false, //jika localhost http, sementara nilai Secure boleh False
+      SameSite = SameSiteMode.Strict,
+      Expires = DateTime.UtcNow.AddDays(7),
+    };
+
+    var httpContext = _httpContextAccessor.HttpContext!;
+    httpContext.Response.Cookies.Append("refreshToken", token, options);
+  }
+
+
 
 }

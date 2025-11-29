@@ -9,13 +9,13 @@ namespace Backend.Models
         public int Id { get; set; }
 
         [Required, MaxLength(100)]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [Required, MaxLength(100)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required, MaxLength(255)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Required]
         public bool IsActive { get; set; } = true;
@@ -29,8 +29,9 @@ namespace Backend.Models
         public DateTime? ResetPasswordExpiry { get; set; }
 
         // Navigation
-        public ICollection<CheckoutModel> Checkouts { get; set; }
-        public ICollection<PaymentModel> Payments { get; set; }
+        public ICollection<RefreshTokenModel>? RefreshTokens { get; set; } = [];
+        public ICollection<CheckoutModel>? Checkouts { get; set; }
+        public ICollection<PaymentModel>? Payments { get; set; }
         public DateTime ResetTokenExpiry { get; internal set; }
     }
 

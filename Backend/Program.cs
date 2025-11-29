@@ -27,21 +27,27 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.Cookie.HttpOnly = true;
+	options.Cookie.SameSite = SameSiteMode.Strict;
+});
 
 // 1. Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
 		options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// TAMBAH: Daftarkan layanan AuthService dan IAuthInterface
-builder.Services.AddScoped<IAuthInterface, AuthService>();
+builder.Services.AddHttpContextAccessor();
 
 // 2. Add Controllers
 builder.Services.AddControllers();
 
+// TAMBAH: Daftarkan layanan AuthService dan IAuthInterface
+builder.Services.AddScoped<IAuthInterface, AuthService>();
 builder.Services.AddScoped<IFileUploadInterface, FileUploadService>();
 builder.Services.AddScoped<ICategoryInterface, CategoryService>();
-builder.Services.AddScoped<IUsersInterface, UsersService>();
 builder.Services.AddScoped<IEmailInterface, EmailService>();
+builder.Services.AddScoped<IUsersInterface, UsersService>();
 
 //TAMBAH: Layanan Authenticasi JwtBearer
 builder.Services.AddAuthentication(options =>

@@ -2,12 +2,10 @@
 using Backend.Data;
 using Backend.DTOs.Auth;
 using Backend.DTOs.ForgotPassword;
-using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
-using Azure.Messaging;
 using Backend.Interface;
+
 
 [Route("/api/[controller]")]
 [ApiController]
@@ -16,12 +14,14 @@ public class AuthController : ControllerBase
   private readonly IAuthInterface _authService;
   private readonly AppDbContext _context;
   private readonly IEmailInterface _emailService;
+  private readonly ILogger<AuthController> _logger;
 
-  public AuthController(AppDbContext context, IEmailInterface emailService, IAuthInterface authService)
+  public AuthController(AppDbContext context, IEmailInterface emailService, IAuthInterface authService, ILogger<AuthController> logger)
   {
     _authService = authService;
     _context = context;
     _emailService = emailService;
+    _logger = logger;
   }
 
 
@@ -56,18 +56,23 @@ public class AuthController : ControllerBase
   [ProducesResponseType(StatusCodes.Status400BadRequest)]
   public async Task<IActionResult> Login([FromBody] LoginDto dto)
   {
+    _logger.LogInformation("[POST] api/auth/login DIPANGGIL {email}", dto.Email);
+
     if (!ModelState.IsValid)
     {
-      return BadRequest(ModelState);
+      _logger.LogWarning("[POST] INPUT INVALID {dto}", dto);
+      return BadRequest(new { message = "INPUT TIDAK VALID", error = ModelState });
     }
 
-    var token = await _authService.LoginAsync(dto);
-    if (string.IsNullOrEmpty(token))
+    // var token = await _authService.LoginAsync(dto);
+    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+    var result = await _authService.LoginAsync(dto, ipAddress);
+
+    return Ok(new
     {
-      return Unauthorized(new { message = "EMAIL ATAU PASSWORD TIDAK VALID" });
-    }
-
-    return Ok(new { Token = token });
+      accessToken = result.AccessToken,
+      message = "LOGIN BERHASIL"
+    });
   }
 
 
@@ -98,7 +103,7 @@ public class AuthController : ControllerBase
 
     var frontendUrl = "http://localhost:5161";
 
-    await _emailService.SendPasswordResetLink(user.Email, resetToken, frontendUrl);
+    await _emailService.SendPasswordResetLink(user.Email!, resetToken, frontendUrl);
 
     return Ok(new { Message = "LINK RESET TELAH DIKIRIM, APABILA EMAIL TERDAFTAR" });
   }
